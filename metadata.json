@@ -1,0 +1,6 @@
+{
+  "name": "CadetVerse",
+  "description": "Exclusive social network and alumni nexus for the Cadet College community of Bangladesh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
