@@ -1,16 +1,20 @@
-export type CadetCollegeCode = 
-  | 'FCC' // Faujdarhat Cadet College
-  | 'MCC' // Mirzapur Cadet College
-  | 'RCC' // Rajshahi Cadet College
-  | 'JCC' // Jhenaidah Cadet College
-  | 'SCC' // Sylhet Cadet College
-  | 'CCR' // Rangpur Cadet College
-  | 'BCC' // Barishal Cadet College
-  | 'PCC' // Pabna Cadet College
-  | 'MGCC' // Mymensingh Girls' Cadet College
-  | 'CCC' // Cumilla Cadet College
-  | 'FGCC' // Feni Girls' Cadet College
-  | 'JGCC'; // Joypurhat Girls' Cadet College
+import type {
+  CadetCollegeCode,
+  CollegeCategory,
+  HouseColour,
+  House,
+  AlumniAssociation,
+  CadetCollege,
+} from './data/cadetColleges';
+
+export type {
+  CadetCollegeCode,
+  CollegeCategory,
+  HouseColour,
+  House,
+  AlumniAssociation,
+  CadetCollege,
+};
 
 export interface CadetUser {
   id: string;
