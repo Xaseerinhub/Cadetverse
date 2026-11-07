@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Heart, MessageCircle, Eye, Sparkles, Filter, X } from 'lucide-react';
 import { CadetCollegeCode, CadetUser } from '../types';
-import { CADET_COLLEGES } from '../data/mockData';
+import { COLLEGES, getCollege } from '../data/collegeReference';
 
 interface PhotoMemory {
   id: string;
   title: string;
   college: CadetCollegeCode;
-  collegeName: string;
   year: number;
   imageUrl: string;
   author: string;
@@ -36,7 +35,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_1',
       title: 'Academy Campus Clock Tower at Golden Dusk',
       college: 'MCC',
-      collegeName: 'Mirzapur Cadet College',
       year: 2026,
       imageUrl: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
       author: 'Tanvir Ahsan',
@@ -50,7 +48,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_2',
       title: 'Passing Out Parade Drill Squad in Formation',
       college: 'FCC',
-      collegeName: 'Faujdarhat Cadet College',
       year: 2025,
       imageUrl: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
       author: 'Maj. Rezwan (Retd.)',
@@ -64,7 +61,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_3',
       title: 'Annual Alumni Reunion Gala Evening',
       college: 'MGCC',
-      collegeName: 'Mymensingh Girls\' Cadet College',
       year: 2026,
       imageUrl: '/src/assets/images/cadet_reunion_gala_1794029063879.jpg',
       author: 'Samira Mehnaz',
@@ -78,7 +74,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_4',
       title: 'Inter-House 400m Track Athletics Final',
       college: 'RCC',
-      collegeName: 'Rajshahi Cadet College',
       year: 2026,
       imageUrl: '/src/assets/images/cadet_athletics_event_1794029063781.jpg',
       author: 'Farhan Ahmed',
@@ -92,7 +87,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_5',
       title: 'Dormitory Grounds & Obstacle Course Coursework',
       college: 'JCC',
-      collegeName: 'Jhenaidah Cadet College',
       year: 2024,
       imageUrl: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
       author: 'Anisur Rahman',
@@ -106,7 +100,6 @@ export const ExploreGrid: React.FC = () => {
       id: 'photo_6',
       title: 'Guard of Honor Inspection at Sunrise',
       college: 'SCC',
-      collegeName: 'Sylhet Cadet College',
       year: 2025,
       imageUrl: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
       author: 'Tariq Munir',
@@ -175,7 +168,7 @@ export const ExploreGrid: React.FC = () => {
           >
             All 12 Colleges
           </button>
-          {CADET_COLLEGES.map((c) => (
+          {COLLEGES.map((c) => (
             <button
               key={c.code}
               onClick={() => setSelectedCollege(c.code)}
@@ -298,7 +291,7 @@ export const ExploreGrid: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs text-indigo-400 font-medium">
-                    <span>{activePhoto.collegeName}</span>
+                    <span>{getCollege(activePhoto.college)?.name}</span>
                     <span aria-hidden="true">·</span>
                     <span>{activePhoto.year}</span>
                   </div>

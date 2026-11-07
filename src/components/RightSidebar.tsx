@@ -10,6 +10,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { Community, CadetUser } from '../types';
+import { formatHouseLabel } from '../data/collegeReference';
 import { ActivePage } from './NavbarDesktop';
 
 interface RightSidebarProps {
@@ -156,7 +157,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       {cadet.name}
                     </p>
                     <p className="text-[11px] text-slate-400 truncate">
-                      {cadet.collegeCode} · #{cadet.cadetNumber} · {cadet.house}
+                      {cadet.collegeCode} · #{cadet.cadetNumber} · {formatHouseLabel(cadet.houseId)}
                     </p>
                   </div>
                 </div>

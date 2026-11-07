@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, UserCheck, Sparkles, ArrowRight, Check } from 'lucide-react';
 import { CadetUser, CadetCollegeCode } from '../types';
-import { CADET_COLLEGES, DEMO_USERS } from '../data/mockData';
+import { DEMO_USERS } from '../data/mockData';
+import { COLLEGES, HOUSE_COLOURS, formatHouseLabel, getCollege, isHouseOfCollege } from '../data/collegeReference';
 import { CrestLogo } from './CrestLogo';
 
 interface AuthModalProps {
@@ -26,33 +27,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [cadetNumber, setCadetNumber] = useState('');
   const [selectedCollege, setSelectedCollege] = useState<CadetCollegeCode>('MCC');
   const [intake, setIntake] = useState<number>(45);
-  const [house, setHouse] = useState('Fazlul Huq House');
+  const [houseId, setHouseId] = useState('MCC-FAZLUL_HUQ');
   const [profession, setProfession] = useState('Software Engineer');
   const [registeredToast, setRegisteredToast] = useState(false);
 
   if (!isOpen) return null;
 
-  const currentCollegeObj = CADET_COLLEGES.find((c) => c.code === selectedCollege) || CADET_COLLEGES[0];
+  const currentCollegeObj = getCollege(selectedCollege);
+
+  const handleCollegeChange = (code: CadetCollegeCode) => {
+    setSelectedCollege(code);
+    setHouseId(getCollege(code)?.houses[0]?.id ?? '');
+  };
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !cadetNumber.trim()) return;
+    if (!currentCollegeObj || !isHouseOfCollege(houseId, selectedCollege)) return;
 
     const newUser: CadetUser = {
       id: `cadet_${Date.now()}`,
       name: name.trim(),
       cadetNumber: cadetNumber.trim(),
-      college: currentCollegeObj.name,
       collegeCode: selectedCollege,
       intake: intake || 45,
-      house: house || currentCollegeObj.houses[0],
-      houseColor: '#6366f1',
+      houseId,
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
       coverImage: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
       role: 'alumnus',
       profession: profession || 'Cadet Alumnus',
       location: 'Dhaka, Bangladesh',
-      bio: `${selectedCollege} Intake ${intake} · Cadet #${cadetNumber} · ${house}. Newly registered on CadetVerse.`,
+      bio: `${selectedCollege} Intake ${intake} · Cadet #${cadetNumber} · ${formatHouseLabel(houseId)}. Newly registered on CadetVerse.`,
       joinedDate: 'Joined Today',
       isVerifiedAlumnus: true,
       stats: {
@@ -168,7 +173,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                             <span aria-hidden="true">·</span>
                             <span>{demo.intake}th Intake</span>
                             <span aria-hidden="true">·</span>
-                            <span>{demo.house}</span>
+                            <span>{formatHouseLabel(demo.houseId)}</span>
                           </div>
                           <p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-xs">
                             {demo.profession}
@@ -198,7 +203,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div>
                   <label className="block text-slate-400 mb-1">Cadet College</label>
                   <select className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200">
-                    {CADET_COLLEGES.map((c) => (
+                    {COLLEGES.map((c) => (
                       <option key={c.code} value={c.code}>
                         {c.code} - {c.name}
                       </option>
@@ -273,10 +278,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <label className="block text-slate-400 mb-1">Cadet College</label>
                   <select
                     value={selectedCollege}
-                    onChange={(e) => setSelectedCollege(e.target.value as CadetCollegeCode)}
+                    onChange={(e) => handleCollegeChange(e.target.value as CadetCollegeCode)}
                     className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200"
                   >
-                    {CADET_COLLEGES.map((c) => (
+                    {COLLEGES.map((c) => (
                       <option key={c.code} value={c.code}>
                         {c.code} - {c.name.split(' ')[0]}
                       </option>
@@ -311,12 +316,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div>
                   <label className="block text-slate-400 mb-1">House</label>
                   <select
-                    value={house}
-                    onChange={(e) => setHouse(e.target.value)}
+                    value={houseId}
+                    onChange={(e) => setHouseId(e.target.value)}
                     className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200"
                   >
-                    {currentCollegeObj.houses.map((h) => (
-                      <option key={h} value={h}>{h}</option>
+                    {currentCollegeObj?.houses.map((h) => (
+                      <option key={h.id} value={h.id}>{h.name} House ({HOUSE_COLOURS[h.colour].label})</option>
                     ))}
                   </select>
                 </div>

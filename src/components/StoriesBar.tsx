@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, X, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Story, CadetUser } from '../types';
+import { formatHouseLabel } from '../data/collegeReference';
 
 interface StoriesBarProps {
   stories: Story[];
@@ -168,7 +169,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
               </p>
               <div className="flex items-center justify-between text-xs text-slate-300">
                 <span className="text-[11px] font-mono text-indigo-300">
-                  {activeStory.author.house}
+                  {formatHouseLabel(activeStory.author.houseId)}
                 </span>
                 <span className="flex items-center gap-1 text-[11px] text-slate-400">
                   <Eye className="w-3.5 h-3.5" /> 184 Cadets viewed

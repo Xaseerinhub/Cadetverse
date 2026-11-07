@@ -11,6 +11,7 @@ import {
   ShieldCheck 
 } from 'lucide-react';
 import { ChatConversation, CadetUser, DirectMessage } from '../types';
+import { formatHouseLabel } from '../data/collegeReference';
 
 interface MessagesViewProps {
   conversations: ChatConversation[];
@@ -150,7 +151,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
                     {activeConv.participant.collegeCode} #{activeConv.participant.cadetNumber}
                   </span>
                   <span aria-hidden="true">·</span>
-                  <span>{activeConv.participant.house}</span>
+                  <span>{formatHouseLabel(activeConv.participant.houseId)}</span>
                   <span aria-hidden="true">·</span>
                   <span>{activeConv.isOnline ? 'Online' : 'Active earlier'}</span>
                 </div>

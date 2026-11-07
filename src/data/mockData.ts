@@ -1,5 +1,4 @@
 import { 
-  CadetCollegeCode, 
   CadetUser, 
   Post, 
   Story, 
@@ -10,135 +9,14 @@ import {
   VerificationRequest 
 } from '../types';
 
-export const CADET_COLLEGES: {
-  code: CadetCollegeCode;
-  name: string;
-  established: number;
-  location: string;
-  motto: string;
-  houses: string[];
-  alumniAssoc: string;
-}[] = [
-  {
-    code: 'FCC',
-    name: 'Faujdarhat Cadet College',
-    established: 1958,
-    location: 'Chittagong',
-    motto: 'Deeds Not Words',
-    houses: ['Babar House', 'Shahjahan House', 'Akbar House', 'Rabindra House', 'Fazlul Huq House'],
-    alumniAssoc: 'Old Fauji Association (OFA)'
-  },
-  {
-    code: 'MCC',
-    name: 'Mirzapur Cadet College',
-    established: 1963,
-    location: 'Tangail',
-    motto: 'Enter to Learn, Go Forth to Serve',
-    houses: ['Fazlul Huq House', 'Suhrawardy House', 'Nazrul House', 'Tariq House'],
-    alumniAssoc: 'Mirzapur Ex-Cadets Association (MECA)'
-  },
-  {
-    code: 'RCC',
-    name: 'Rajshahi Cadet College',
-    established: 1966,
-    location: 'Sarda, Rajshahi',
-    motto: 'Knowledge is Light',
-    houses: ['Qasim House', 'Tariq House', 'Khalid House', 'Babar House'],
-    alumniAssoc: 'Old Rajshahi Cadets Association (ORCA)'
-  },
-  {
-    code: 'JCC',
-    name: 'Jhenaidah Cadet College',
-    established: 1963,
-    location: 'Jhenaidah',
-    motto: 'Character is Destiny',
-    houses: ['Badr House', 'Khaybar House', 'Hunayn House'],
-    alumniAssoc: 'Jhenaidah Ex-Cadets Association (JEXCA)'
-  },
-  {
-    code: 'SCC',
-    name: 'Sylhet Cadet College',
-    established: 1978,
-    location: 'Sylhet',
-    motto: 'Truth is Beauty',
-    houses: ['Surma House', 'Kushiara House', 'Titash House'],
-    alumniAssoc: 'Sylhet Cadets Association (SCA)'
-  },
-  {
-    code: 'CCR',
-    name: 'Rangpur Cadet College',
-    established: 1979,
-    location: 'Rangpur',
-    motto: 'Aim High',
-    houses: ['Omar House', 'Ayub House', 'Titumir House'],
-    alumniAssoc: 'Rangpur Cadets Association (RCA)'
-  },
-  {
-    code: 'BCC',
-    name: 'Barishal Cadet College',
-    established: 1981,
-    location: 'Barishal',
-    motto: 'Strive for Excellence',
-    houses: ['Kirtankhola House', 'Tetulia House', 'Baleshwar House'],
-    alumniAssoc: 'Barisal Ex-Cadets Association (BEXCA)'
-  },
-  {
-    code: 'PCC',
-    name: 'Pabna Cadet College',
-    established: 1981,
-    location: 'Pabna',
-    motto: 'Service Before Self',
-    houses: ['Padma House', 'Jamuna House', 'Ichamati House'],
-    alumniAssoc: 'Pabna Ex-Cadets Association (PECA)'
-  },
-  {
-    code: 'MGCC',
-    name: 'Mymensingh Girls\' Cadet College',
-    established: 1982,
-    location: 'Mymensingh',
-    motto: 'Wisdom, Courage, Discipline',
-    houses: ['Aparajita House', 'Tarulata House', 'Karabi House'],
-    alumniAssoc: 'Mymensingh Ex-Cadets Association'
-  },
-  {
-    code: 'CCC',
-    name: 'Cumilla Cadet College',
-    established: 1983,
-    location: 'Kotbari, Cumilla',
-    motto: 'Character, Discipline, Devotion',
-    houses: ['Maynamati House', 'Gomati House', 'Lalmai House'],
-    alumniAssoc: 'Association of Cumilla Old Cadets (ACOC)'
-  },
-  {
-    code: 'FGCC',
-    name: 'Feni Girls\' Cadet College',
-    established: 2006,
-    location: 'Feni',
-    motto: 'Courage, Honor, Integrity',
-    houses: ['Khadija House', 'Ayesha House', 'Fatema House'],
-    alumniAssoc: 'Feni Girls Ex-Cadets Association'
-  },
-  {
-    code: 'JGCC',
-    name: 'Joypurhat Girls\' Cadet College',
-    established: 2006,
-    location: 'Joypurhat',
-    motto: 'Enlightened Women, Empowered Nation',
-    houses: ['Rokeya House', 'Pritilata House', 'Ila Mitra House'],
-    alumniAssoc: 'Joypurhat Ex-Cadets Association'
-  }
-];
-
 export const DEMO_USERS: CadetUser[] = [
   {
     id: 'user_1',
     name: 'Dr. Tanvir Ahsan',
     cadetNumber: '1428',
-    college: 'Mirzapur Cadet College',
     collegeCode: 'MCC',
     intake: 44,
-    house: 'Fazlul Huq House',
-    houseColor: '#3b82f6',
+    houseId: 'MCC-FAZLUL_HUQ',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
     role: 'alumnus',
@@ -159,11 +37,9 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_2',
     name: 'Dr. Nafis Iqbal',
     cadetNumber: '984',
-    college: 'Faujdarhat Cadet College',
     collegeCode: 'FCC',
     intake: 39,
-    house: 'Rabindra House',
-    houseColor: '#8b5cf6',
+    houseId: 'FCC-RABINDRA',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
     role: 'alumnus',
@@ -184,18 +60,16 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_3',
     name: 'Samira Mehnaz',
     cadetNumber: '412',
-    college: 'Mymensingh Girls\' Cadet College',
     collegeCode: 'MGCC',
     intake: 14,
-    house: 'Tarulata House',
-    houseColor: '#ec4899',
+    houseId: 'MGCC-SATYA',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_reunion_gala_1794029063879.jpg',
     role: 'alumnus',
     profession: 'VP of Product Design',
     companyOrOrg: 'FinTech Hub & Girls Cadet Alumni Circle',
     location: 'Dhaka, Bangladesh',
-    bio: 'MGCC 14th Intake · Tarulata House Captain. Building products, championing women leaders in technology and public policy.',
+    bio: 'MGCC 14th Intake · Satya House Captain. Building products, championing women leaders in technology and public policy.',
     joinedDate: 'Joined February 2024',
     isVerifiedAlumnus: true,
     stats: {
@@ -209,11 +83,9 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_4',
     name: 'Kazi Farhan Ahmed',
     cadetNumber: '2105',
-    college: 'Rajshahi Cadet College',
     collegeCode: 'RCC',
     intake: 52,
-    house: 'Qasim House',
-    houseColor: '#10b981',
+    houseId: 'RCC-QASIM',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_athletics_event_1794029063781.jpg',
     role: 'prefect',
@@ -380,10 +252,9 @@ export const INITIAL_POSTS: Post[] = [
       ...DEMO_USERS[1],
       name: 'Major Rezwanul Kabir (Retd.)',
       cadetNumber: '812',
-      college: 'Jhenaidah Cadet College',
       collegeCode: 'JCC',
       intake: 26,
-      house: 'Badr House'
+      houseId: 'JCC-BADR'
     },
     content: 'To the young cadets currently preparing for the Inter-Cadet Literary and Cultural Competition (ICLCC): remember that elocution, extempore speech, and stage presence learned in that auditorium will define how you speak before boardrooms, tribunals, and command summits 30 years from now. Give it your entire heart.',
     collegeTag: 'JCC',
@@ -420,7 +291,7 @@ export const INITIAL_COMMUNITIES: Community[] = [
     type: 'college',
     category: 'College Wing',
     memberCount: 2450,
-    description: 'Old Fauji Association official nexus. Babar, Shahjahan, Akbar, Rabindra, and Fazlul Huq house archives.',
+    description: 'Old Faujian Association official nexus. Shahidullah, Rabindra, Fazlul Hoque, and Nazrul house archives.',
     isJoined: false,
     recentTopic: 'OFA Winter Golf Tournament 2026',
     badge: 'Est. 1958'
@@ -728,10 +599,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_1',
     cadetName: 'Rashidul Hasan',
-    college: 'Faujdarhat Cadet College',
+    collegeCode: 'FCC',
     cadetNumber: '1102',
     intake: 41,
-    house: 'Akbar House',
+    houseId: 'FCC-SHAHIDULLAH',
     graduatingYear: 2011,
     submittedAt: 'Today, 2:15 PM',
     proofDocument: 'College Leaving Certificate #FCC-2011-1102 (PDF)',
@@ -740,10 +611,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_2',
     cadetName: 'Tazeen Sharmin',
-    college: 'Feni Girls\' Cadet College',
+    collegeCode: 'FGCC',
     cadetNumber: '184',
     intake: 6,
-    house: 'Ayesha House',
+    houseId: 'FGCC-AYESHA',
     graduatingYear: 2015,
     submittedAt: 'Yesterday, 8:40 PM',
     proofDocument: 'FGCC Old Cadets Association Membership Card (JPG)',
@@ -752,10 +623,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_3',
     cadetName: 'Shahriar Mahmud',
-    college: 'Barishal Cadet College',
+    collegeCode: 'BCC',
     cadetNumber: '954',
     intake: 29,
-    house: 'Kirtankhola House',
+    houseId: 'BCC-SHARIATULLAH',
     graduatingYear: 2007,
     submittedAt: 'Nov 04, 2026',
     proofDocument: 'HSC Transcript & Cadet ID Scan (PNG)',

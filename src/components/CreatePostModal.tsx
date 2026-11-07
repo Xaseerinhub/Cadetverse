@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Image as ImageIcon, Send, Tag, Sparkles } from 'lucide-react';
 import { CadetUser, CadetCollegeCode, Post } from '../types';
-import { CADET_COLLEGES } from '../data/mockData';
+import { COLLEGES, formatHouseLabel } from '../data/collegeReference';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -96,7 +96,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 <span aria-hidden="true">·</span>
                 <span>{currentUser.intake}th Intake</span>
                 <span aria-hidden="true">·</span>
-                <span>{currentUser.house}</span>
+                <span>{formatHouseLabel(currentUser.houseId)}</span>
               </div>
             </div>
           </div>
@@ -122,7 +122,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
               >
                 <option value="">All 12 Colleges</option>
-                {CADET_COLLEGES.map((c) => (
+                {COLLEGES.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.code} - {c.name}
                   </option>

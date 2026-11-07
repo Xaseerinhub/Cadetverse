@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { VerificationRequest } from '../types';
 import { INITIAL_VERIFICATIONS } from '../data/mockData';
+import { formatHouseLabel, getCollege } from '../data/collegeReference';
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'verifications' | 'reports' | 'stats'>('verifications');
@@ -117,11 +118,11 @@ export const AdminDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
-                    <span>{item.college}</span>
+                    <span>{getCollege(item.collegeCode)?.name}</span>
                     <span aria-hidden="true">·</span>
                     <span>Intake {item.intake}th</span>
                     <span aria-hidden="true">·</span>
-                    <span>{item.house}</span>
+                    <span>{formatHouseLabel(item.houseId)}</span>
                     <span aria-hidden="true">·</span>
                     <span>Class of {item.graduatingYear}</span>
                   </div>
@@ -211,15 +212,15 @@ export const AdminDashboard: React.FC = () => {
               Colleges Engagement & Alumni Nexus Index
             </h3>
             <div className="space-y-2 text-xs">
-              {[
-                { name: 'Mirzapur Cadet College (MCC)', members: '2,890 members', pct: '92%' },
-                { name: 'Faujdarhat Cadet College (FCC)', members: '2,450 members', pct: '88%' },
-                { name: 'Rajshahi Cadet College (RCC)', members: '2,130 members', pct: '82%' },
-                { name: 'Mymensingh Girls\' Cadet College (MGCC)', members: '1,670 members', pct: '79%' },
-                { name: 'Jhenaidah Cadet College (JCC)', members: '1,450 members', pct: '74%' },
-              ].map((c, i) => (
+              {([
+                { code: 'MCC', members: '2,890 members', pct: '92%' },
+                { code: 'FCC', members: '2,450 members', pct: '88%' },
+                { code: 'RCC', members: '2,130 members', pct: '82%' },
+                { code: 'MGCC', members: '1,670 members', pct: '79%' },
+                { code: 'JCC', members: '1,450 members', pct: '74%' },
+              ] as const).map((c, i) => (
                 <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800/80">
-                  <span className="font-medium text-slate-200">{c.name}</span>
+                  <span className="font-medium text-slate-200">{getCollege(c.code)?.name} ({c.code})</span>
                   <div className="flex items-center gap-3">
                     <span className="text-slate-400">{c.members}</span>
                     <span className="font-mono text-indigo-400 font-bold">{c.pct}</span>

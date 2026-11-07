@@ -11,6 +11,7 @@ import {
   Pin
 } from 'lucide-react';
 import { Post, CadetUser, PostComment } from '../types';
+import { formatHouseLabel } from '../data/collegeReference';
 
 interface PostCardProps {
   post: Post;
@@ -94,7 +95,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               <span aria-hidden="true" className="text-slate-600">·</span>
               <span>{post.author.intake}th Intake</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="text-slate-400">{post.author.house}</span>
+              <span className="text-slate-400">{formatHouseLabel(post.author.houseId)}</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
               <span className="text-slate-500">{post.timestamp}</span>
             </div>

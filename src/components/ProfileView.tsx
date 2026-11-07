@@ -15,6 +15,7 @@ import {
   Check
 } from 'lucide-react';
 import { CadetUser, Post } from '../types';
+import { formatHouseLabel, getCollege } from '../data/collegeReference';
 import { PostCard } from './PostCard';
 
 interface ProfileViewProps {
@@ -130,11 +131,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
             {/* Cadet College Affiliation */}
             <div className="flex items-center gap-2 text-xs text-indigo-300 font-medium flex-wrap">
-              <span>{user.college}</span>
+              <span>{getCollege(user.collegeCode)?.name}</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
               <span>Intake {user.intake}th</span>
               <span aria-hidden="true" className="text-slate-600">·</span>
-              <span className="text-slate-300 font-semibold">{user.house}</span>
+              <span className="text-slate-300 font-semibold">{formatHouseLabel(user.houseId)}</span>
             </div>
 
             {/* Profession & Location */}

@@ -13,7 +13,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { Community, CadetUser } from '../types';
-import { CADET_COLLEGES } from '../data/mockData';
+import { COLLEGES } from '../data/collegeReference';
 
 interface CommunitiesViewProps {
   communities: Community[];
@@ -242,7 +242,7 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
       {activeTab === 'colleges' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {CADET_COLLEGES.map((college) => {
+            {COLLEGES.map((college) => {
               const matchingComm = communities.find((c) => c.code === college.code);
               const isJoined = matchingComm ? matchingComm.isJoined : false;
 
@@ -257,9 +257,6 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-indigo-400 font-mono">
                             {college.code}
-                          </span>
-                          <span className="text-[11px] text-slate-500">
-                            Est. {college.established} · {college.location}
                           </span>
                         </div>
                         <h3 className="text-base font-bold text-white mt-0.5">
@@ -279,12 +276,8 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       </button>
                     </div>
 
-                    <p className="text-xs text-indigo-300/90 italic font-serif">
-                      "{college.motto}"
-                    </p>
-
                     <p className="text-xs text-slate-400">
-                      Alumni: <span className="text-slate-300 font-medium">{college.alumniAssoc}</span>
+                      Alumni: <span className="text-slate-300 font-medium">{college.alumniAssociation.name} ({college.alumniAssociation.abbreviation})</span>
                     </p>
 
                     {/* Houses List */}
@@ -295,10 +288,10 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                       <div className="flex flex-wrap gap-1.5">
                         {college.houses.map((house) => (
                           <span
-                            key={house}
+                            key={house.id}
                             className="text-[11px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300"
                           >
-                            {house}
+                            {house.name} House
                           </span>
                         ))}
                       </div>

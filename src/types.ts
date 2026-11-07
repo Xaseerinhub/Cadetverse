@@ -16,11 +16,9 @@ export interface CadetUser {
   id: string;
   name: string;
   cadetNumber: string; // e.g. "1428"
-  college: string; // "Mirzapur Cadet College"
   collegeCode: CadetCollegeCode;
   intake: number; // e.g. 44
-  house: string; // "Fazlul Huq House"
-  houseColor: string; // e.g. "#3b82f6"
+  houseId: string; // stable house ID from data/collegeReference.ts
   avatar: string;
   coverImage?: string;
   role: 'cadet' | 'alumnus' | 'prefect' | 'admin';
@@ -149,10 +147,10 @@ export interface NotificationItem {
 export interface VerificationRequest {
   id: string;
   cadetName: string;
-  college: string;
+  collegeCode: CadetCollegeCode;
   cadetNumber: string;
   intake: number;
-  house: string;
+  houseId: string;
   graduatingYear: number;
   submittedAt: string;
   proofDocument: string;
