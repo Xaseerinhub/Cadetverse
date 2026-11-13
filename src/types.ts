@@ -1,24 +1,30 @@
-export type CadetCollegeCode = 
-  | 'FCC' // Faujdarhat Cadet College
-  | 'MCC' // Mirzapur Cadet College
-  | 'RCC' // Rajshahi Cadet College
-  | 'JCC' // Jhenaidah Cadet College
-  | 'SCC' // Sylhet Cadet College
-  | 'CCR' // Rangpur Cadet College
-  | 'BCC' // Barishal Cadet College
-  | 'PCC' // Pabna Cadet College
-  | 'MGCC' // Mymensingh Girls' Cadet College
-  | 'CCC' // Cumilla Cadet College
-  | 'FGCC' // Feni Girls' Cadet College
-  | 'JGCC'; // Joypurhat Girls' Cadet College
+import type {
+  CadetCollegeCode,
+  CollegeCategory,
+  HouseColour,
+  House,
+  AlumniAssociation,
+  CadetCollege,
+} from './data/cadetColleges';
+
+export type {
+  CadetCollegeCode,
+  CollegeCategory,
+  HouseColour,
+  House,
+  AlumniAssociation,
+  CadetCollege,
+};
 
 export interface CadetUser {
   id: string;
   name: string;
-  cadetNumber: string; // e.g. "1428"
-  collegeCode: CadetCollegeCode;
-  intake: number; // e.g. 44
-  houseId: string; // stable house ID from data/collegeReference.ts
+  cadetNumber: string; // e.g. "1428" or "UNASSIGNED"
+  college: string; // e.g. "Mirzapur Cadet College" or "Pending College Verification"
+  collegeCode: CadetCollegeCode | 'PENDING';
+  intake: number; // e.g. 44 or 0 (unassigned)
+  house: string; // "Fazlul Huq House"
+  houseColor: string; // e.g. "#3b82f6"
   avatar: string;
   coverImage?: string;
   role: 'cadet' | 'alumnus' | 'prefect' | 'admin';
@@ -147,10 +153,10 @@ export interface NotificationItem {
 export interface VerificationRequest {
   id: string;
   cadetName: string;
-  collegeCode: CadetCollegeCode;
+  college: string;
   cadetNumber: string;
   intake: number;
-  houseId: string;
+  house: string;
   graduatingYear: number;
   submittedAt: string;
   proofDocument: string;
