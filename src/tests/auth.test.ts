@@ -10,6 +10,7 @@ import {
   parseRecoveryCallback,
   resolveEffectiveRecoveryCallback,
   runAuthInitialization,
+  performPasswordUpdate,
   stripRecoveryParamsFromUrl,
   validateNewPasswordInput,
   RECOVERY_STORAGE_KEY,
@@ -948,8 +949,13 @@ function createRecoveryTestHarness(options: {
   session?: Session | null;
   storage?: SessionStorageLike | null;
   getUserImpl?: () => Promise<{ data: { user: User | null }; error: { message: string } | null }>;
+  signOutThrows?: boolean;
 } = {}) {
   const storage = options.storage === undefined ? createMockSessionStorage() : options.storage;
+  let currentSession: Session | null = options.session ?? null;
+  let recoveryCallbackActive = true;
+  let errorCallbackActive = true;
+
   const state = {
     loading: true,
     session: null as Session | null,
@@ -960,6 +966,7 @@ function createRecoveryTestHarness(options: {
     urlClearedCount: 0,
     initialCallbackClearedCount: 0,
     getUserCallCount: 0,
+    updateUserCallCount: 0,
     snapshots: [] as Array<{ loading: boolean; isPasswordRecovery: boolean; recoveryError: string | null; hasUser: boolean }>,
   };
 
@@ -973,6 +980,13 @@ function createRecoveryTestHarness(options: {
   };
 
   let authListener: ((event: AuthChangeEvent, session: Session | null) => void | Promise<void>) | null = null;
+
+  const emitAuthEvent = async (event: AuthChangeEvent, nextSession: Session | null) => {
+    currentSession = nextSession;
+    if (authListener) {
+      await authListener(event, nextSession);
+    }
+  };
 
   const client: AuthClientLike = {
     auth: {
@@ -989,7 +1003,7 @@ function createRecoveryTestHarness(options: {
         };
       },
       getSession: async () => ({
-        data: { session: options.session ?? null },
+        data: { session: currentSession },
         error: null,
       }),
       getUser: async () => {
@@ -998,11 +1012,35 @@ function createRecoveryTestHarness(options: {
           return options.getUserImpl();
         }
         return {
-          data: { user: options.session?.user ?? null },
-          error: options.session ? null : { message: 'Invalid token' },
+          data: { user: currentSession?.user ?? null },
+          error: currentSession ? null : { message: 'Invalid token' },
         };
       },
+      updateUser: async () => {
+        state.updateUserCallCount += 1;
+        if (!currentSession) {
+          return {
+            data: { user: null },
+            error: { message: 'Auth session missing or expired' },
+          };
+        }
+        await emitAuthEvent('USER_UPDATED', currentSession);
+        return { data: { user: currentSession.user }, error: null };
+      },
+      signOut: async () => {
+        if (options.signOutThrows) {
+          throw new Error('Network error during signOut');
+        }
+        await emitAuthEvent('SIGNED_OUT', null);
+        return { error: null };
+      },
     },
+  };
+
+  const invalidateCallbacks = () => {
+    recoveryCallbackActive = false;
+    errorCallbackActive = false;
+    state.initialCallbackClearedCount += 1;
   };
 
   const callbacks = {
@@ -1030,9 +1068,9 @@ function createRecoveryTestHarness(options: {
     clearUrlTokens: () => {
       state.urlClearedCount += 1;
     },
-    clearInitialCallback: () => {
-      state.initialCallbackClearedCount += 1;
-    },
+    clearInitialCallback: invalidateCallbacks,
+    isRecoveryCallbackActive: () => recoveryCallbackActive,
+    isErrorCallbackActive: () => errorCallbackActive,
     setRecoveryLock: () => {
       setPersistedRecoveryLock(storage);
     },
@@ -1041,13 +1079,27 @@ function createRecoveryTestHarness(options: {
     },
   };
 
-  const emitAuthEvent = async (event: AuthChangeEvent, nextSession: Session | null) => {
-    if (authListener) {
-      await authListener(event, nextSession);
-    }
+  const clearRecoveryMode = () => {
+    clearPersistedRecoveryLock(storage);
+    invalidateCallbacks();
+    state.isPasswordRecovery = false;
   };
 
-  return { state, storage, client, callbacks, emitAuthEvent };
+  const clearRecoveryError = () => {
+    clearPersistedRecoveryLock(storage);
+    invalidateCallbacks();
+    state.recoveryError = null;
+  };
+
+  return {
+    state,
+    storage,
+    client,
+    callbacks,
+    emitAuthEvent,
+    clearRecoveryMode,
+    clearRecoveryError,
+  };
 }
 
 describe('CadetVerse Password Recovery Race Condition Regression Tests', () => {
@@ -1470,6 +1522,243 @@ describe('CadetVerse Password Recovery Persistence Lock Regression Tests', () =>
     assert.doesNotThrow(() => clearPersistedRecoveryLock(brokenStorage));
   });
 });
+
+describe('CadetVerse Stale Password Recovery Callback Regression Tests', () => {
+  const recoverySession: Session = {
+    access_token: 'recovery-flow-access-token',
+    refresh_token: 'recovery-flow-refresh-token',
+    expires_in: 900,
+    token_type: 'bearer',
+    user: {
+      id: 'cadet-recovery-user-id',
+      email: 'cadet.reset@fcc.edu.bd',
+      app_metadata: {},
+      user_metadata: { full_name: 'Cadet Tariq' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    },
+  };
+
+  const normalSignInSession: Session = {
+    access_token: 'normal-signin-access-token',
+    refresh_token: 'normal-signin-refresh-token',
+    expires_in: 3600,
+    token_type: 'bearer',
+    user: {
+      id: 'cadet-recovery-user-id',
+      email: 'cadet.reset@fcc.edu.bd',
+      app_metadata: {},
+      user_metadata: { full_name: 'Cadet Tariq' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    },
+  };
+
+  it('1. Same auth listener: SIGNED_OUT invalidates recovery callback so subsequent normal SIGNED_IN stays signed in normally', async () => {
+    const tabStorage = createMockSessionStorage();
+    const harness = createRecoveryTestHarness({
+      session: recoverySession,
+      storage: tabStorage,
+    });
+
+    await runAuthInitialization({
+      getClient: async () => harness.client,
+      callbackInfo: parseRecoveryCallback('#access_token=tok_reset&type=recovery', ''),
+      callbacks: harness.callbacks,
+    });
+
+    // Recovery mode is active and lock is persisted
+    assert.strictEqual(harness.state.isPasswordRecovery, true);
+    assert.strictEqual(harness.state.recoveryError, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), true);
+
+    // Recovery session ends via SIGNED_OUT
+    await harness.emitAuthEvent('SIGNED_OUT', null);
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.strictEqual(harness.state.session, null);
+    assert.strictEqual(harness.state.user, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+
+    // User now signs in normally on the SAME mounted listener
+    await harness.emitAuthEvent('SIGNED_IN', normalSignInSession);
+
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.strictEqual(harness.state.recoveryError, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+    assert.strictEqual((harness.state.session as Session | null)?.access_token, 'normal-signin-access-token');
+    assert.strictEqual((harness.state.user as User | null)?.id, 'cadet-recovery-user-id');
+  });
+
+  it('2. Explicit recovery cancellation invalidates recovery callback even without SIGNED_OUT before normal SIGNED_IN', async () => {
+    const tabStorage = createMockSessionStorage();
+    const harness = createRecoveryTestHarness({
+      session: recoverySession,
+      storage: tabStorage,
+    });
+
+    await runAuthInitialization({
+      getClient: async () => harness.client,
+      callbackInfo: parseRecoveryCallback('#access_token=tok_cancel&type=recovery', ''),
+      callbacks: harness.callbacks,
+    });
+
+    assert.strictEqual(harness.state.isPasswordRecovery, true);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), true);
+
+    // User cancels recovery explicitly
+    harness.clearRecoveryMode();
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+
+    // User signs in normally on the same listener
+    await harness.emitAuthEvent('SIGNED_IN', normalSignInSession);
+
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.strictEqual(harness.state.recoveryError, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+    assert.strictEqual(harness.state.session?.access_token, 'normal-signin-access-token');
+    assert.strictEqual(harness.state.user?.id, 'cadet-recovery-user-id');
+  });
+
+  it('3. Clearing an expired/error callback prevents normal SIGNED_IN from reactivating error or recovery UI', async () => {
+    const tabStorage = createMockSessionStorage();
+    const harness = createRecoveryTestHarness({
+      session: null,
+      storage: tabStorage,
+    });
+
+    const expiredCallback = parseRecoveryCallback(
+      '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired',
+      ''
+    );
+
+    await runAuthInitialization({
+      getClient: async () => harness.client,
+      callbackInfo: expiredCallback,
+      callbacks: harness.callbacks,
+    });
+
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.ok(harness.state.recoveryError);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+
+    // User dismisses expired link screen ("Return to Sign In")
+    harness.clearRecoveryError();
+    assert.strictEqual(harness.state.recoveryError, null);
+
+    // User signs in normally on the same listener
+    await harness.emitAuthEvent('SIGNED_IN', normalSignInSession);
+
+    assert.strictEqual(harness.state.recoveryError, null);
+    assert.strictEqual(harness.state.isPasswordRecovery, false);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), false);
+    assert.strictEqual(harness.state.session?.access_token, 'normal-signin-access-token');
+    assert.strictEqual(harness.state.user?.id, 'cadet-recovery-user-id');
+  });
+
+  it('4. Active recovery remains active through valid TOKEN_REFRESHED events before password update', async () => {
+    const tabStorage = createMockSessionStorage();
+    const harness = createRecoveryTestHarness({
+      session: recoverySession,
+      storage: tabStorage,
+    });
+
+    await runAuthInitialization({
+      getClient: async () => harness.client,
+      callbackInfo: parseRecoveryCallback('#access_token=tok_active&type=recovery', ''),
+      callbacks: harness.callbacks,
+    });
+
+    assert.strictEqual(harness.state.isPasswordRecovery, true);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), true);
+    assert.strictEqual(harness.state.getUserCallCount, 1);
+
+    const refreshedRecoverySession: Session = {
+      ...recoverySession,
+      access_token: 'recovery-refreshed-access-token',
+      refresh_token: 'recovery-refreshed-refresh-token',
+    };
+
+    await harness.emitAuthEvent('TOKEN_REFRESHED', refreshedRecoverySession);
+    assert.strictEqual(harness.state.isPasswordRecovery, true);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), true);
+    assert.strictEqual(harness.state.session?.access_token, 'recovery-refreshed-access-token');
+
+    // Tab focus SIGNED_IN while still in recovery continues keeping recovery active
+    await harness.emitAuthEvent('SIGNED_IN', refreshedRecoverySession);
+    assert.strictEqual(harness.state.isPasswordRecovery, true);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorage), true);
+    assert.strictEqual(harness.state.getUserCallCount, 1);
+  });
+
+  it('5. Successful password update via performPasswordUpdate invalidates recovery callback and allows clean normal SIGNED_IN', async () => {
+    // Subcase A: Standard flow where updateUser succeeds and signOut emits SIGNED_OUT
+    const tabStorageA = createMockSessionStorage();
+    const harnessA = createRecoveryTestHarness({
+      session: recoverySession,
+      storage: tabStorageA,
+    });
+
+    await runAuthInitialization({
+      getClient: async () => harnessA.client,
+      callbackInfo: parseRecoveryCallback('#access_token=tok_pw_ok&type=recovery', ''),
+      callbacks: harnessA.callbacks,
+    });
+
+    assert.strictEqual(harnessA.state.isPasswordRecovery, true);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorageA), true);
+
+    const updateResultA = await performPasswordUpdate(
+      harnessA.client,
+      'NewCadetPassword!2026',
+      harnessA.callbacks
+    );
+    assert.strictEqual(updateResultA.error, null);
+    assert.strictEqual(harnessA.state.updateUserCallCount, 1);
+    assert.strictEqual(harnessA.state.isPasswordRecovery, false);
+    assert.strictEqual(harnessA.state.recoveryError, null);
+    assert.strictEqual(harnessA.state.session, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorageA), false);
+
+    // User signs in with the new password on the SAME listener
+    await harnessA.emitAuthEvent('SIGNED_IN', normalSignInSession);
+    assert.strictEqual(harnessA.state.isPasswordRecovery, false);
+    assert.strictEqual(harnessA.state.recoveryError, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorageA), false);
+    assert.strictEqual((harnessA.state.session as Session | null)?.access_token, 'normal-signin-access-token');
+    assert.strictEqual((harnessA.state.user as User | null)?.id, 'cadet-recovery-user-id');
+
+    // Subcase B: Even if network signOut throws after updateUser succeeds, recovery callback is invalidated
+    const tabStorageB = createMockSessionStorage();
+    const harnessB = createRecoveryTestHarness({
+      session: recoverySession,
+      storage: tabStorageB,
+      signOutThrows: true,
+    });
+
+    await runAuthInitialization({
+      getClient: async () => harnessB.client,
+      callbackInfo: parseRecoveryCallback('#access_token=tok_pw_net&type=recovery', ''),
+      callbacks: harnessB.callbacks,
+    });
+
+    const updateResultB = await performPasswordUpdate(
+      harnessB.client,
+      'NewCadetPassword!2026',
+      harnessB.callbacks
+    );
+    assert.strictEqual(updateResultB.error, null);
+    assert.strictEqual(harnessB.state.isPasswordRecovery, false);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorageB), false);
+
+    await harnessB.emitAuthEvent('SIGNED_IN', normalSignInSession);
+    assert.strictEqual(harnessB.state.isPasswordRecovery, false);
+    assert.strictEqual(harnessB.state.recoveryError, null);
+    assert.strictEqual(hasPersistedRecoveryLock(tabStorageB), false);
+    assert.strictEqual(harnessB.state.session?.access_token, 'normal-signin-access-token');
+  });
+});
+
 
 
 

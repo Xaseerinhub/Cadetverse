@@ -329,6 +329,13 @@ export interface AuthClientLike {
       data: { user: User | null };
       error: { message: string } | null;
     }>;
+    updateUser?: (attributes: { password?: string }) => Promise<{
+      data: { user: User | null };
+      error: AuthError | { message: string } | null;
+    }>;
+    signOut?: () => Promise<{
+      error: AuthError | { message: string } | null;
+    }>;
   };
 }
 
@@ -343,6 +350,8 @@ export interface AuthLifecycleCallbacks {
   getIsPasswordRecovery: () => boolean;
   clearUrlTokens: () => void;
   clearInitialCallback: () => void;
+  isRecoveryCallbackActive?: () => boolean;
+  isErrorCallbackActive?: () => boolean;
   setRecoveryLock?: () => void;
   clearRecoveryLock?: () => void;
 }
@@ -373,6 +382,8 @@ export async function runAuthInitialization({
   let inFlightValidation: { key: string; promise: Promise<boolean> } | null = null;
   let validatedSessionKey: string | null = null;
   let recoveryInvalidated = false;
+  let activeRecoveryCallback = Boolean(callbackInfo.isRecoveryCallback);
+  let activeErrorCallback = Boolean(callbackInfo.isErrorCallback);
 
   const setLock = () => {
     if (callbacks.setRecoveryLock) {
@@ -389,6 +400,27 @@ export async function runAuthInitialization({
       clearPersistedRecoveryLock();
     }
   };
+
+  const invalidateRecoveryCallbacks = () => {
+    activeRecoveryCallback = false;
+    activeErrorCallback = false;
+    recoveryInvalidated = true;
+    callbacks.clearInitialCallback();
+  };
+
+  const invalidateErrorCallback = () => {
+    activeErrorCallback = false;
+    callbacks.clearInitialCallback();
+  };
+
+  const hasActiveRecoveryCallback = (): boolean =>
+    !recoveryInvalidated &&
+    activeRecoveryCallback &&
+    (callbacks.isRecoveryCallbackActive ? callbacks.isRecoveryCallbackActive() : true);
+
+  const hasActiveErrorCallback = (): boolean =>
+    activeErrorCallback &&
+    (callbacks.isErrorCallbackActive ? callbacks.isErrorCallbackActive() : true);
 
   const getSessionKey = (candidate: Session | null): string =>
     candidate?.access_token ? candidate.access_token : '__null_session__';
@@ -407,14 +439,13 @@ export async function runAuthInitialization({
       if (!candidateSession) {
         if (!callbacks.isMounted()) return false;
         validatedSessionKey = null;
-        recoveryInvalidated = true;
+        invalidateRecoveryCallbacks();
         clearLock();
         callbacks.setIsPasswordRecovery(false);
         callbacks.setSession(null);
         callbacks.setUser(null);
         callbacks.setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
         callbacks.clearUrlTokens();
-        callbacks.clearInitialCallback();
         return false;
       }
 
@@ -432,14 +463,13 @@ export async function runAuthInitialization({
         if (!callbacks.isMounted()) return false;
         if (userError || !userData?.user) {
           validatedSessionKey = null;
-          recoveryInvalidated = true;
+          invalidateRecoveryCallbacks();
           clearLock();
           callbacks.setIsPasswordRecovery(false);
           callbacks.setSession(null);
           callbacks.setUser(null);
           callbacks.setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
           callbacks.clearUrlTokens();
-          callbacks.clearInitialCallback();
           return false;
         }
       }
@@ -469,14 +499,16 @@ export async function runAuthInitialization({
     if (!callbacks.isMounted()) return;
 
     if (!client) {
-      if (callbackInfo.isErrorCallback || callbackInfo.isRecoveryCallback) {
+      if (activeErrorCallback || activeRecoveryCallback) {
         clearLock();
       }
-      if (callbackInfo.isErrorCallback) {
+      if (hasActiveErrorCallback()) {
+        invalidateErrorCallback();
         callbacks.setIsPasswordRecovery(false);
         callbacks.setRecoveryError(callbackInfo.errorMessage || INVALID_RECOVERY_LINK_MESSAGE);
         callbacks.clearUrlTokens();
-        callbacks.clearInitialCallback();
+      } else {
+        activeRecoveryCallback = false;
       }
       callbacks.setIsConfigured(false);
       callbacks.setLoading(false);
@@ -489,12 +521,12 @@ export async function runAuthInitialization({
       if (!callbacks.isMounted()) return;
       initialEventFired = true;
 
-      if (callbackInfo.isErrorCallback && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+      if (hasActiveErrorCallback() && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
+        invalidateErrorCallback();
         clearLock();
         callbacks.setIsPasswordRecovery(false);
         callbacks.setRecoveryError(callbackInfo.errorMessage || INVALID_RECOVERY_LINK_MESSAGE);
         callbacks.clearUrlTokens();
-        callbacks.clearInitialCallback();
         callbacks.setSession(newSession);
         callbacks.setUser(newSession?.user ?? null);
         callbacks.setLoading(false);
@@ -514,8 +546,8 @@ export async function runAuthInitialization({
 
       if (event === 'SIGNED_OUT') {
         validatedSessionKey = null;
+        invalidateRecoveryCallbacks();
         clearLock();
-        callbacks.clearInitialCallback();
         callbacks.setSession(null);
         callbacks.setUser(null);
         callbacks.setIsPasswordRecovery(false);
@@ -524,8 +556,7 @@ export async function runAuthInitialization({
       }
 
       if (
-        !recoveryInvalidated &&
-        callbackInfo.isRecoveryCallback &&
+        hasActiveRecoveryCallback() &&
         (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')
       ) {
         // If TOKEN_REFRESHED already rotated the session during active recovery, keep validated key current
@@ -583,19 +614,19 @@ export async function runAuthInitialization({
           console.warn('[CadetVerse Auth] Failed to restore session:', error.message);
         }
 
-        if (callbackInfo.isErrorCallback) {
+        if (hasActiveErrorCallback()) {
+          invalidateErrorCallback();
           clearLock();
           callbacks.setIsPasswordRecovery(false);
           callbacks.setRecoveryError(callbackInfo.errorMessage || INVALID_RECOVERY_LINK_MESSAGE);
           callbacks.clearUrlTokens();
-          callbacks.clearInitialCallback();
           callbacks.setSession(sessionData.session);
           callbacks.setUser(sessionData.session?.user ?? null);
           callbacks.setLoading(false);
           return;
         }
 
-        if (callbackInfo.isRecoveryCallback && !recoveryInvalidated) {
+        if (hasActiveRecoveryCallback()) {
           const valid = await validateAndEnterRecovery(client, sessionData.session);
           if (!callbacks.isMounted()) return;
           if (valid) {
@@ -617,16 +648,99 @@ export async function runAuthInitialization({
       err instanceof Error ? err.message : 'Unknown error'
     );
     if (callbacks.isMounted()) {
-      if (callbackInfo.isErrorCallback) {
+      if (hasActiveErrorCallback()) {
+        invalidateErrorCallback();
         clearLock();
         callbacks.setIsPasswordRecovery(false);
         callbacks.setRecoveryError(callbackInfo.errorMessage || INVALID_RECOVERY_LINK_MESSAGE);
         callbacks.clearUrlTokens();
-        callbacks.clearInitialCallback();
       }
       callbacks.setLoading(false);
     }
   }
+}
+
+export interface PerformPasswordUpdateCallbacks {
+  clearRecoveryLock: () => void;
+  clearInitialCallback: () => void;
+  setIsPasswordRecovery: (active: boolean) => void;
+  setRecoveryError: (error: string | null) => void;
+  clearUrlTokens: () => void;
+  setSession: (session: Session | null) => void;
+  setUser: (user: User | null) => void;
+}
+
+/**
+ * Validates the active recovery session, updates the user's password via Supabase,
+ * invalidates all recovery callback/lock state, and signs out so the user signs in cleanly.
+ */
+export async function performPasswordUpdate(
+  client: AuthClientLike | null,
+  newPassword: string,
+  callbacks: PerformPasswordUpdateCallbacks
+): Promise<{ error: AuthError | Error | null }> {
+  if (!client) {
+    return { error: new Error('Supabase is not configured.') };
+  }
+
+  if (!newPassword || !newPassword.trim() || newPassword.length < 6) {
+    return { error: new Error('Password must be at least 6 characters long.') };
+  }
+
+  // Session & server-side user verification: ensure an active, valid recovery session exists
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError || !sessionData.session) {
+    callbacks.clearRecoveryLock();
+    callbacks.clearInitialCallback();
+    callbacks.setIsPasswordRecovery(false);
+    callbacks.setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
+    callbacks.clearUrlTokens();
+    return {
+      error: new Error(sessionError?.message || INVALID_RECOVERY_LINK_MESSAGE),
+    };
+  }
+
+  if (typeof client.auth.getUser === 'function') {
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData?.user) {
+      callbacks.clearRecoveryLock();
+      callbacks.clearInitialCallback();
+      callbacks.setIsPasswordRecovery(false);
+      callbacks.setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
+      callbacks.clearUrlTokens();
+      return {
+        error: new Error(userError?.message || INVALID_RECOVERY_LINK_MESSAGE),
+      };
+    }
+  }
+
+  if (typeof client.auth.updateUser !== 'function') {
+    return { error: new Error('Password update is not supported by the auth client.') };
+  }
+
+  const { error } = await client.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (!error) {
+    callbacks.clearRecoveryLock();
+    callbacks.clearInitialCallback();
+    callbacks.setIsPasswordRecovery(false);
+    callbacks.setRecoveryError(null);
+    callbacks.clearUrlTokens();
+    // Terminate recovery session so the user signs in cleanly with the new password
+    try {
+      if (typeof client.auth.signOut === 'function') {
+        await client.auth.signOut();
+      }
+    } catch {
+      // Proceed with local state cleanup even if network signOut encounters an issue
+    }
+    callbacks.setSession(null);
+    callbacks.setUser(null);
+  }
+
+  return { error: error ? (error instanceof Error ? error : new Error(error.message)) : null };
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -637,10 +751,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isPasswordRecovery, setIsPasswordRecoveryState] = useState<boolean>(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const isPasswordRecoveryRef = useRef<boolean>(false);
+  const activeRecoveryCallbackRef = useRef<boolean>(false);
+  const activeErrorCallbackRef = useRef<boolean>(false);
 
   const setIsPasswordRecovery = (active: boolean) => {
     isPasswordRecoveryRef.current = active;
     setIsPasswordRecoveryState(active);
+  };
+
+  const invalidateAllRecoveryCallbacks = () => {
+    activeRecoveryCallbackRef.current = false;
+    activeErrorCallbackRef.current = false;
+    clearInitialRecoveryCallback();
   };
 
   useEffect(() => {
@@ -657,6 +779,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       hasPersistedRecoveryLock()
     );
 
+    activeRecoveryCallbackRef.current = callbackInfo.isRecoveryCallback;
+    activeErrorCallbackRef.current = callbackInfo.isErrorCallback;
+
     void runAuthInitialization({
       getClient: getOrInitSupabase,
       callbackInfo,
@@ -670,7 +795,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRecoveryError,
         getIsPasswordRecovery: () => isPasswordRecoveryRef.current,
         clearUrlTokens: clearRecoveryTokensFromUrl,
-        clearInitialCallback: clearInitialRecoveryCallback,
+        clearInitialCallback: invalidateAllRecoveryCallbacks,
+        isRecoveryCallbackActive: () => activeRecoveryCallbackRef.current,
+        isErrorCallbackActive: () => activeErrorCallbackRef.current,
         setRecoveryLock: () => setPersistedRecoveryLock(),
         clearRecoveryLock: () => clearPersistedRecoveryLock(),
       },
@@ -735,7 +862,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const client = await getOrInitSupabase();
     if (!client) {
       clearPersistedRecoveryLock();
-      clearInitialRecoveryCallback();
+      invalidateAllRecoveryCallbacks();
       setSession(null);
       setUser(null);
       setIsPasswordRecovery(false);
@@ -747,7 +874,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       clearPersistedRecoveryLock();
-      clearInitialRecoveryCallback();
+      invalidateAllRecoveryCallbacks();
       setSession(null);
       setUser(null);
       setIsPasswordRecovery(false);
@@ -774,74 +901,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUserPassword = async (newPassword: string) => {
     const client = await getOrInitSupabase();
-    if (!client) {
-      return { error: new Error('Supabase is not configured.') };
-    }
-
-    if (!newPassword || !newPassword.trim() || newPassword.length < 6) {
-      return { error: new Error('Password must be at least 6 characters long.') };
-    }
-
-    // Session & server-side user verification: ensure an active, valid recovery session exists
-    const { data: sessionData, error: sessionError } = await client.auth.getSession();
-    if (sessionError || !sessionData.session) {
-      clearPersistedRecoveryLock();
-      clearInitialRecoveryCallback();
-      setIsPasswordRecovery(false);
-      setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
-      clearRecoveryTokensFromUrl();
-      return {
-        error: new Error(
-          sessionError?.message || INVALID_RECOVERY_LINK_MESSAGE
-        ),
-      };
-    }
-
-    if (typeof client.auth.getUser === 'function') {
-      const { data: userData, error: userError } = await client.auth.getUser();
-      if (userError || !userData?.user) {
-        clearPersistedRecoveryLock();
-        clearInitialRecoveryCallback();
-        setIsPasswordRecovery(false);
-        setRecoveryError(INVALID_RECOVERY_LINK_MESSAGE);
-        clearRecoveryTokensFromUrl();
-        return {
-          error: new Error(userError?.message || INVALID_RECOVERY_LINK_MESSAGE),
-        };
-      }
-    }
-
-    const { error } = await client.auth.updateUser({
-      password: newPassword,
+    return performPasswordUpdate(client, newPassword, {
+      clearRecoveryLock: () => clearPersistedRecoveryLock(),
+      clearInitialCallback: invalidateAllRecoveryCallbacks,
+      setIsPasswordRecovery,
+      setRecoveryError,
+      clearUrlTokens: clearRecoveryTokensFromUrl,
+      setSession,
+      setUser,
     });
-
-    if (!error) {
-      clearPersistedRecoveryLock();
-      clearInitialRecoveryCallback();
-      setIsPasswordRecovery(false);
-      setRecoveryError(null);
-      clearRecoveryTokensFromUrl();
-      // Terminate recovery session so the user signs in cleanly with the new password
-      try {
-        await client.auth.signOut();
-      } catch {
-        // Proceed with local state cleanup even if network signOut encounters an issue
-      }
-      setSession(null);
-      setUser(null);
-    }
-    return { error };
   };
 
   const clearRecoveryMode = () => {
     clearPersistedRecoveryLock();
-    clearInitialRecoveryCallback();
+    invalidateAllRecoveryCallbacks();
     setIsPasswordRecovery(false);
   };
 
   const clearRecoveryError = () => {
     clearPersistedRecoveryLock();
-    clearInitialRecoveryCallback();
+    invalidateAllRecoveryCallbacks();
     setRecoveryError(null);
   };
 
