@@ -4,10 +4,63 @@
 @layer base {
   :root {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color-scheme: light;
+
+    /* Light Mode: Warm Light Khaki Canvas + Crisp Warm White Surfaces */
+    --bg-canvas: #f4efe6;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #fbf8f3;
+    --bg-surface-subtle: #f0eae0;
+    --border-main: #e2dacb;
+    --border-subtle: #ece5d8;
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #78716c;
+
+    /* Cadet Green (Primary CTAs) */
+    --cadet-green: #1b4332;
+    --cadet-green-hover: #143527;
+    --cadet-green-subtle: #e8f3ec;
+
+    /* Saddle Leather Brown (Secondary Badges & Controls) */
+    --leather-brown: #5c3d2e;
+    --leather-brown-hover: #482f23;
+    --leather-brown-subtle: #f7eee7;
+
+    /* Brass Gold */
+    --brass-gold: #c59b27;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    /* Dark Mode: Deep Tactical Dark Khaki / Military Olive-Charcoal */
+    --bg-canvas: #121612;
+    --bg-surface: #1a201b;
+    --bg-surface-elevated: #202721;
+    --bg-surface-subtle: #151a15;
+    --border-main: #2c362d;
+    --border-subtle: #242c25;
+    --text-primary: #f5f5f4;
+    --text-secondary: #d6d3d1;
+    --text-muted: #a8a29e;
+
+    /* Vibrant Cadet Green */
+    --cadet-green: #15803d;
+    --cadet-green-hover: #16a34a;
+    --cadet-green-subtle: rgba(22, 163, 74, 0.15);
+
+    /* Warm Cognac / Leather Brown */
+    --leather-brown: #9a3412;
+    --leather-brown-hover: #b45309;
+    --leather-brown-subtle: rgba(154, 52, 18, 0.2);
+
+    /* Brass Gold */
+    --brass-gold: #eab308;
   }
 }
 
-/* Custom smooth dark scrollbars */
+/* Custom smooth scrollbars adapted to both light & dark modes */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -16,9 +69,15 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(92, 61, 46, 0.2);
   border-radius: 9999px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(92, 61, 46, 0.35);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }

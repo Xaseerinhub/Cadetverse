@@ -4,21 +4,16 @@ import {
   MessageSquare, 
   Building2, 
   Briefcase, 
-  Send, 
-  Search, 
-  ShieldCheck, 
-  Check, 
-  Plus,
-  Compass,
-  ArrowUpRight
+  Send 
 } from 'lucide-react';
 import { Community, CadetUser } from '../types';
 import { CADET_COLLEGES } from '../data/mockData';
 
 interface CommunitiesViewProps {
   communities: Community[];
-  currentUser: CadetUser;
+  currentUser: CadetUser | null;
   onJoinCommunity: (id: string) => void;
+  onPromptAuth?: () => void;
 }
 
 interface GlobalChatMessage {
@@ -36,9 +31,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
   communities,
   currentUser,
   onJoinCommunity,
+  onPromptAuth,
 }) => {
   const [activeTab, setActiveTab] = useState<'lounge' | 'colleges' | 'guilds'>('lounge');
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Realtime Global Chat state
   const [chatMessages, setChatMessages] = useState<GlobalChatMessage[]>([
@@ -77,6 +72,10 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
   const handleSendGlobalMessage = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) {
+      if (onPromptAuth) onPromptAuth();
+      return;
+    }
     if (!inputMsg.trim()) return;
 
     const newMsg: GlobalChatMessage = {
@@ -94,31 +93,30 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setInputMsg('');
   };
 
-  const collegeCommunities = communities.filter((c) => c.type === 'college');
   const guildCommunities = communities.filter((c) => c.type === 'wing' || c.type === 'intake');
 
   return (
     <div className="space-y-6">
       {/* Header and Sub-Navigation */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/30 to-slate-900 border border-slate-800">
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-white via-[#faf6ef] to-white dark:from-[#1a201b] dark:via-[#161c17] dark:to-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1c1917] dark:text-[#f5f5f4] tracking-tight">
               Cadet Communities & Forums
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-[#78716c] dark:text-[#a8a29e] mt-1">
               Connect across all 12 colleges, private intake fraternities, and specialized career guilds.
             </p>
           </div>
 
           {/* Segmented Filter Control */}
-          <div className="flex items-center p-1 bg-slate-950/80 rounded-xl border border-slate-800 self-start sm:self-auto">
+          <div className="flex items-center p-1 bg-[#ede5d8]/70 dark:bg-[#141814] rounded-xl border border-[#e2dacb] dark:border-[#2c362d] self-start sm:self-auto">
             <button
               onClick={() => setActiveTab('lounge')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'lounge'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#1b4332] dark:bg-[#15803d] text-white shadow-xs'
+                  : 'text-[#57534e] hover:text-[#1c1917] dark:text-[#a8a29e] dark:hover:text-[#f5f5f4]'
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
@@ -128,8 +126,8 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               onClick={() => setActiveTab('colleges')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'colleges'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#1b4332] dark:bg-[#15803d] text-white shadow-xs'
+                  : 'text-[#57534e] hover:text-[#1c1917] dark:text-[#a8a29e] dark:hover:text-[#f5f5f4]'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
@@ -139,8 +137,8 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               onClick={() => setActiveTab('guilds')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'guilds'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#1b4332] dark:bg-[#15803d] text-white shadow-xs'
+                  : 'text-[#57534e] hover:text-[#1c1917] dark:text-[#a8a29e] dark:hover:text-[#f5f5f4]'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
@@ -152,35 +150,45 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
       {/* Tab 1: Global Lounge (Realtime interactive chat) */}
       {activeTab === 'lounge' && (
-        <div className="rounded-2xl bg-[#0e1424] border border-slate-800 shadow-xl overflow-hidden flex flex-col h-[600px]">
+        <div className="rounded-2xl bg-white dark:bg-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] shadow-sm overflow-hidden flex flex-col h-[600px]">
           {/* Lounge Header */}
-          <div className="px-5 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 bg-[#faf6ef] dark:bg-[#151a15] border-b border-[#e2dacb] dark:border-[#2c362d] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+              <div className="w-9 h-9 rounded-xl bg-[#1b4332]/10 dark:bg-[#15803d]/20 border border-[#1b4332]/30 dark:border-[#15803d]/30 flex items-center justify-center text-[#1b4332] dark:text-[#4ade80]">
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <h3 className="text-sm font-bold text-[#1c1917] dark:text-[#f5f5f4] flex items-center gap-2">
                   Global Cadet Lounge & Commons
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  <span className="text-[10px] font-mono text-[#1b4332] dark:text-[#4ade80] bg-[#1b4332]/10 dark:bg-[#15803d]/20 px-2 py-0.5 rounded border border-[#1b4332]/25 dark:border-[#15803d]/30">
                     Live Channel
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#78716c] dark:text-[#a8a29e]">
                   Open frequency for all 12 cadet colleges and verified alumni.
                 </p>
               </div>
             </div>
 
-            <div className="text-xs text-slate-400 hidden sm:block">
-              Posting as: <span className="text-indigo-300 font-semibold">{currentUser.name} ({currentUser.collegeCode} #{currentUser.cadetNumber})</span>
+            <div className="text-xs text-[#78716c] dark:text-[#a8a29e] hidden sm:block">
+              {currentUser ? (
+                <span>Posting as: <span className="text-[#1b4332] dark:text-[#4ade80] font-semibold">{currentUser.name} ({currentUser.collegeCode} #{currentUser.cadetNumber})</span></span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onPromptAuth}
+                  className="text-[#1b4332] dark:text-[#4ade80] font-semibold hover:underline cursor-pointer"
+                >
+                  Sign in to post
+                </button>
+              )}
             </div>
           </div>
 
           {/* Messages Stream */}
-          <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5 bg-slate-950/40">
+          <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5 bg-[#faf6ef]/30 dark:bg-[#121612]/30">
             {chatMessages.map((msg) => {
-              const isMe = msg.cadetNumber === currentUser.cadetNumber;
+              const isMe = Boolean(currentUser && msg.cadetNumber === currentUser.cadetNumber);
               return (
                 <div
                   key={msg.id}
@@ -192,13 +200,13 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     src={msg.avatar}
                     alt={msg.sender}
                     referrerPolicy="no-referrer"
-                    className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-700 shrink-0 mt-0.5"
+                    className="w-8 h-8 rounded-full object-cover ring-1 ring-[#1b4332]/30 dark:ring-[#15803d]/30 shrink-0 mt-0.5"
                   />
                   <div
-                    className={`p-3 rounded-2xl text-xs space-y-1 shadow-sm ${
+                    className={`p-3 rounded-2xl text-xs space-y-1 shadow-xs ${
                       isMe
-                        ? 'bg-indigo-600 text-white rounded-tr-none'
-                        : 'bg-[#131b2e] text-slate-200 border border-slate-800 rounded-tl-none'
+                        ? 'bg-[#1b4332] dark:bg-[#15803d] text-white rounded-tr-none'
+                        : 'bg-white dark:bg-[#1e251f] text-[#1c1917] dark:text-[#f5f5f4] border border-[#e2dacb] dark:border-[#2c362d] rounded-tl-none'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3 text-[11px] opacity-80">
@@ -217,19 +225,19 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
           {/* Input Footer */}
           <form
             onSubmit={handleSendGlobalMessage}
-            className="p-3.5 bg-slate-900 border-t border-slate-800 flex items-center gap-2"
+            className="p-3.5 bg-[#faf6ef] dark:bg-[#151a15] border-t border-[#e2dacb] dark:border-[#2c362d] flex items-center gap-2"
           >
             <input
               type="text"
               value={inputMsg}
               onChange={(e) => setInputMsg(e.target.value)}
               placeholder="Broadcast a message to all cadet colleges..."
-              className="flex-1 py-2 px-3.5 text-xs rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+              className="flex-1 py-2 px-3.5 text-xs rounded-xl bg-white dark:bg-[#1e251f] border border-[#e2dacb] dark:border-[#2c362d] text-[#1c1917] dark:text-[#f5f5f4] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#1b4332] dark:focus:border-[#15803d]"
             />
             <button
               type="submit"
               disabled={!inputMsg.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium disabled:opacity-40 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1b4332] hover:bg-[#143527] dark:bg-[#15803d] dark:hover:bg-[#16a34a] text-white text-xs font-medium disabled:opacity-40 transition-colors cursor-pointer shadow-xs"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Broadcast</span>
@@ -249,20 +257,20 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
               return (
                 <div
                   key={college.code}
-                  className="p-5 rounded-2xl bg-[#0f1422] border border-slate-800/90 hover:border-slate-700 transition-all flex flex-col justify-between space-y-4"
+                  className="p-5 rounded-2xl bg-white dark:bg-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] hover:border-[#1b4332]/40 dark:hover:border-[#15803d]/40 transition-all flex flex-col justify-between space-y-4 shadow-xs"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-indigo-400 font-mono">
+                          <span className="text-xs font-bold text-[#1b4332] dark:text-[#4ade80] font-mono">
                             {college.code}
                           </span>
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-[11px] text-[#78716c] dark:text-[#a8a29e]">
                             Est. {college.established} · {college.location}
                           </span>
                         </div>
-                        <h3 className="text-base font-bold text-white mt-0.5">
+                        <h3 className="text-base font-bold text-[#1c1917] dark:text-[#f5f5f4] mt-0.5">
                           {college.name}
                         </h3>
                       </div>
@@ -271,32 +279,32 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                         onClick={() => matchingComm && onJoinCommunity(matchingComm.id)}
                         className={`text-xs px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer shrink-0 ${
                           isJoined
-                            ? 'bg-slate-800 text-slate-300 border border-slate-700'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm'
+                            ? 'bg-[#ede5d8] text-[#57534e] dark:bg-[#202721] dark:text-[#a8a29e] border border-[#e2dacb] dark:border-[#2c362d]'
+                            : 'bg-[#1b4332] hover:bg-[#143527] dark:bg-[#15803d] dark:hover:bg-[#16a34a] text-white shadow-xs'
                         }`}
                       >
                         {isJoined ? 'Joined' : 'Join'}
                       </button>
                     </div>
 
-                    <p className="text-xs text-indigo-300/90 italic font-serif">
+                    <p className="text-xs text-[#5c3d2e] dark:text-[#fbbf24] italic font-serif">
                       "{college.motto}"
                     </p>
 
-                    <p className="text-xs text-slate-400">
-                      Alumni: <span className="text-slate-300 font-medium">{college.alumniAssoc}</span>
+                    <p className="text-xs text-[#78716c] dark:text-[#a8a29e]">
+                      Alumni: <span className="text-[#1c1917] dark:text-[#f5f5f4] font-medium">{college.alumniAssoc}</span>
                     </p>
 
                     {/* Houses List */}
                     <div className="pt-1">
-                      <span className="text-[11px] text-slate-500 block mb-1">
+                      <span className="text-[11px] text-[#78716c] dark:text-[#a8a29e] block mb-1">
                         College Houses:
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {college.houses.map((house) => (
                           <span
                             key={house}
-                            className="text-[11px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300"
+                            className="text-[11px] px-2 py-0.5 rounded bg-[#faf6ef] dark:bg-[#141814] border border-[#e2dacb] dark:border-[#2c362d] text-[#1c1917] dark:text-[#d6d3d1]"
                           >
                             {house}
                           </span>
@@ -305,9 +313,9 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+                  <div className="pt-3 border-t border-[#e2dacb] dark:border-[#2c362d] flex items-center justify-between text-[11px] text-[#78716c] dark:text-[#a8a29e]">
                     <span>{matchingComm ? `${matchingComm.memberCount.toLocaleString()} Verified Members` : 'Active Hub'}</span>
-                    <span className="text-indigo-400 hover:underline cursor-pointer">
+                    <span className="text-[#1b4332] dark:text-[#4ade80] hover:underline cursor-pointer">
                       View Intakes & Archives →
                     </span>
                   </div>
@@ -324,15 +332,15 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
           {guildCommunities.map((comm) => (
             <div
               key={comm.id}
-              className="p-5 rounded-2xl bg-[#0f1422] border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between space-y-4"
+              className="p-5 rounded-2xl bg-white dark:bg-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] hover:border-[#1b4332]/40 dark:hover:border-[#15803d]/40 transition-all flex flex-col justify-between space-y-4 shadow-xs"
             >
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-[#1b4332] dark:text-[#4ade80] uppercase tracking-wider">
                       {comm.category}
                     </span>
-                    <h3 className="text-base font-bold text-white mt-0.5">
+                    <h3 className="text-base font-bold text-[#1c1917] dark:text-[#f5f5f4] mt-0.5">
                       {comm.name}
                     </h3>
                   </div>
@@ -341,27 +349,27 @@ export const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     onClick={() => onJoinCommunity(comm.id)}
                     className={`text-xs px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer shrink-0 ${
                       comm.isJoined
-                        ? 'bg-slate-800 text-slate-300 border border-slate-700'
-                        : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                        ? 'bg-[#ede5d8] text-[#57534e] dark:bg-[#202721] dark:text-[#a8a29e] border border-[#e2dacb] dark:border-[#2c362d]'
+                        : 'bg-[#1b4332] hover:bg-[#143527] dark:bg-[#15803d] dark:hover:bg-[#16a34a] text-white shadow-xs'
                     }`}
                   >
                     {comm.isJoined ? 'Joined' : 'Join Guild'}
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-[#57534e] dark:text-[#d6d3d1] leading-relaxed">
                   {comm.description}
                 </p>
 
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 text-xs">
-                  <span className="text-slate-500 text-[11px] block">Recent Discussion:</span>
-                  <span className="text-slate-200 font-medium">"{comm.recentTopic}"</span>
+                <div className="p-2.5 rounded-xl bg-[#faf6ef] dark:bg-[#141814] border border-[#e2dacb] dark:border-[#2c362d] text-xs">
+                  <span className="text-[#78716c] dark:text-[#a8a29e] text-[11px] block">Recent Discussion:</span>
+                  <span className="text-[#1c1917] dark:text-[#f5f5f4] font-medium">"{comm.recentTopic}"</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-800/70 flex items-center justify-between text-xs text-slate-500">
+              <div className="pt-2 border-t border-[#e2dacb] dark:border-[#2c362d] flex items-center justify-between text-xs text-[#78716c] dark:text-[#a8a29e]">
                 <span>{comm.memberCount.toLocaleString()} Cadets Enrolled</span>
-                <span className="text-indigo-400 hover:underline cursor-pointer">
+                <span className="text-[#1b4332] dark:text-[#4ade80] hover:underline cursor-pointer">
                   Enter Channel →
                 </span>
               </div>

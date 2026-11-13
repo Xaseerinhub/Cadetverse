@@ -24,8 +24,8 @@ function getSupabaseServerConfig() {
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || null;
 
   if (url) {
-    // Normalize: strip accidental trailing /rest/v1 or /rest/v1/ to keep canonical project base URL
-    url = url.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+    // Normalize: strip accidental trailing /rest/v1, /rest, /auth/v1, or trailing slashes
+    url = url.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/rest\/?$/, '').replace(/\/auth\/v1\/?$/, '').replace(/\/$/, '');
   }
 
   const isConfigured = Boolean(url && url.trim() && anonKey && anonKey.trim());

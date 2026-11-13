@@ -6,19 +6,26 @@ import { CADET_COLLEGES } from '../data/mockData';
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser: CadetUser | null;
+  onSubmitPost: (newPost: Omit<Post, 'id' | 'timestamp' | 'likesCount' | 'commentsCount' | 'repostsCount' | 'isLiked' | 'isSaved' | 'comments'>) => void;
+}
+
+interface CreatePostDialogProps {
+  onClose: () => void;
   currentUser: CadetUser;
   onSubmitPost: (newPost: Omit<Post, 'id' | 'timestamp' | 'likesCount' | 'commentsCount' | 'repostsCount' | 'isLiked' | 'isSaved' | 'comments'>) => void;
 }
 
-export const CreatePostModal: React.FC<CreatePostModalProps> = ({
-  isOpen,
+const CreatePostDialog: React.FC<CreatePostDialogProps> = ({
   onClose,
   currentUser,
   onSubmitPost,
 }) => {
   const [content, setContent] = useState('');
-  const [selectedCollege, setSelectedCollege] = useState<CadetCollegeCode | ''>(currentUser.collegeCode);
-  const [intakeNumber, setIntakeNumber] = useState<number>(currentUser.intake);
+  const [selectedCollege, setSelectedCollege] = useState<CadetCollegeCode | ''>(
+    currentUser.collegeCode !== 'PENDING' ? (currentUser.collegeCode as CadetCollegeCode) : ''
+  );
+  const [intakeNumber, setIntakeNumber] = useState<number>(currentUser.intake > 0 ? currentUser.intake : 0);
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>(['CadetLife']);
 
@@ -30,8 +37,6 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   ];
 
   const quickTags = ['CadetLife', 'AlumniReunion', 'InterHouse', 'CadetMotto', 'SeniorJunior', 'OFA', 'MECA'];
-
-  if (!isOpen) return null;
 
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -48,7 +53,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       author: currentUser,
       content: content.trim(),
       collegeTag: (selectedCollege as CadetCollegeCode) || undefined,
-      intakeTag: intakeNumber || undefined,
+      intakeTag: intakeNumber > 0 ? intakeNumber : undefined,
       image: selectedImage || undefined,
       tags: selectedTags,
     });
@@ -59,19 +64,19 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg bg-[#0e1424] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#e2dacb] dark:border-[#2c362d]">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-100 text-sm">Create Cadet Post</span>
-            <span className="text-xs text-indigo-400 font-mono">
-              #{currentUser.cadetNumber}
+            <span className="font-bold text-[#1c1917] dark:text-[#f5f5f4] text-sm">Create Cadet Post</span>
+            <span className="text-xs text-[#1b4332] dark:text-[#4ade80] font-mono">
+              {currentUser.cadetNumber !== 'UNASSIGNED' ? `#${currentUser.cadetNumber}` : '(Unassigned)'}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[#78716c] hover:text-[#1c1917] dark:text-[#a8a29e] dark:hover:text-[#f5f5f4] hover:bg-[#ede5d8]/60 dark:hover:bg-[#202721] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -85,16 +90,16 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               src={currentUser.avatar}
               alt={currentUser.name}
               referrerPolicy="no-referrer"
-              className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30"
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1b4332]/20 dark:ring-[#15803d]/30"
             />
             <div>
-              <p className="text-xs font-semibold text-slate-200">
+              <p className="text-xs font-semibold text-[#1c1917] dark:text-[#f5f5f4]">
                 {currentUser.name}
               </p>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <span>{currentUser.collegeCode}</span>
+              <div className="flex items-center gap-1.5 text-[11px] text-[#78716c] dark:text-[#a8a29e]">
+                <span>{currentUser.collegeCode !== 'PENDING' ? currentUser.collegeCode : 'College Pending'}</span>
                 <span aria-hidden="true">·</span>
-                <span>{currentUser.intake}th Intake</span>
+                <span>{currentUser.intake > 0 ? `${currentUser.intake}th Intake` : 'Intake Pending'}</span>
                 <span aria-hidden="true">·</span>
                 <span>{currentUser.house}</span>
               </div>
@@ -107,19 +112,19 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             onChange={(e) => setContent(e.target.value)}
             rows={4}
             placeholder="Share memories, reunion announcements, cadet batch updates, or advice for juniors..."
-            className="w-full p-3 text-sm rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
+            className="w-full p-3 text-sm rounded-xl bg-[#faf6ef] dark:bg-[#131713] border border-[#e2dacb] dark:border-[#2c362d] text-[#1c1917] dark:text-[#f5f5f4] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#1b4332] dark:focus:border-[#15803d] focus:ring-1 focus:ring-[#1b4332] dark:focus:ring-[#15803d] resize-none"
           />
 
           {/* College & Intake Selector */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
-              <label className="block text-slate-400 mb-1 text-[11px] font-medium">
+              <label className="block text-[#57534e] dark:text-[#a8a29e] mb-1 text-[11px] font-medium">
                 Target College Tag
               </label>
               <select
                 value={selectedCollege}
                 onChange={(e) => setSelectedCollege(e.target.value as CadetCollegeCode)}
-                className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full p-2 rounded-lg bg-[#faf6ef] dark:bg-[#131713] border border-[#e2dacb] dark:border-[#2c362d] text-[#1c1917] dark:text-[#f5f5f4] text-xs focus:outline-none focus:border-[#1b4332] dark:focus:border-[#15803d]"
               >
                 <option value="">All 12 Colleges</option>
                 {CADET_COLLEGES.map((c) => (
@@ -131,7 +136,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-slate-400 mb-1 text-[11px] font-medium">
+              <label className="block text-[#57534e] dark:text-[#a8a29e] mb-1 text-[11px] font-medium">
                 Intake Number
               </label>
               <input
@@ -139,15 +144,15 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 value={intakeNumber || ''}
                 onChange={(e) => setIntakeNumber(Number(e.target.value))}
                 placeholder="e.g. 44"
-                className="w-full p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full p-2 rounded-lg bg-[#faf6ef] dark:bg-[#131713] border border-[#e2dacb] dark:border-[#2c362d] text-[#1c1917] dark:text-[#f5f5f4] text-xs focus:outline-none focus:border-[#1b4332] dark:focus:border-[#15803d]"
               />
             </div>
           </div>
 
           {/* Attach Campus Imagery */}
           <div>
-            <label className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium mb-1.5">
-              <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="flex items-center gap-1.5 text-[11px] text-[#57534e] dark:text-[#a8a29e] font-medium mb-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-[#1b4332] dark:text-[#4ade80]" />
               Attach Campus Photograph / Memory
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -160,8 +165,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     onClick={() => setSelectedImage(isSelected ? '' : img.url)}
                     className={`relative rounded-lg overflow-hidden border transition-all cursor-pointer aspect-video ${
                       isSelected
-                        ? 'border-indigo-500 ring-2 ring-indigo-500/40'
-                        : 'border-slate-800 opacity-60 hover:opacity-100'
+                        ? 'border-[#1b4332] dark:border-[#15803d] ring-2 ring-[#1b4332]/40 dark:ring-[#15803d]/40'
+                        : 'border-[#e2dacb] dark:border-[#2c362d] opacity-75 hover:opacity-100'
                     }`}
                   >
                     <img
@@ -180,8 +185,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
           {/* Quick Hashtags */}
           <div>
-            <label className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium mb-1.5">
-              <Tag className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="flex items-center gap-1.5 text-[11px] text-[#57534e] dark:text-[#a8a29e] font-medium mb-1.5">
+              <Tag className="w-3.5 h-3.5 text-[#5c3d2e] dark:text-[#fbbf24]" />
               Cadet Hashtags
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -194,8 +199,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     onClick={() => toggleTag(tag)}
                     className={`text-[11px] px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
                       active
-                        ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/50'
-                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200'
+                        ? 'bg-[#1b4332]/15 text-[#1b4332] dark:bg-[#15803d]/20 dark:text-[#4ade80] border border-[#1b4332]/40 dark:border-[#15803d]/40'
+                        : 'bg-[#faf6ef] dark:bg-[#131713] text-[#57534e] dark:text-[#a8a29e] border border-[#e2dacb] dark:border-[#2c362d] hover:text-[#1c1917] dark:hover:text-[#f5f5f4]'
                     }`}
                   >
                     #{tag}
@@ -207,22 +212,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-slate-800 bg-slate-900/40">
-          <span className="text-[11px] text-slate-500">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-[#e2dacb] dark:border-[#2c362d] bg-[#faf6ef]/70 dark:bg-[#141814]/70">
+          <span className="text-[11px] text-[#78716c] dark:text-[#a8a29e]">
             Visible to verified cadets & alumni
           </span>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#78716c] hover:text-[#1c1917] dark:text-[#a8a29e] dark:hover:text-[#f5f5f4] hover:bg-[#ede5d8]/50 dark:hover:bg-[#202721] cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handlePost}
               disabled={!content.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-indigo-900/40 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium bg-[#1b4332] hover:bg-[#143527] dark:bg-[#15803d] dark:hover:bg-[#16a34a] text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#1b4332]/20 dark:shadow-green-950/40 transition-colors cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Publish Post</span>
@@ -231,5 +236,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         </div>
       </div>
     </div>
+  );
+};
+
+export const CreatePostModal: React.FC<CreatePostModalProps> = ({
+  isOpen,
+  onClose,
+  currentUser,
+  onSubmitPost,
+}) => {
+  if (!isOpen || !currentUser) return null;
+
+  return (
+    <CreatePostDialog
+      onClose={onClose}
+      currentUser={currentUser}
+      onSubmitPost={onSubmitPost}
+    />
   );
 };

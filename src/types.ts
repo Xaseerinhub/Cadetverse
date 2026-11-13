@@ -19,10 +19,10 @@ export type {
 export interface CadetUser {
   id: string;
   name: string;
-  cadetNumber: string; // e.g. "1428"
-  college: string; // "Mirzapur Cadet College"
-  collegeCode: CadetCollegeCode;
-  intake: number; // e.g. 44
+  cadetNumber: string; // e.g. "1428" or "UNASSIGNED"
+  college: string; // e.g. "Mirzapur Cadet College" or "Pending College Verification"
+  collegeCode: CadetCollegeCode | 'PENDING';
+  intake: number; // e.g. 44 or 0 (unassigned)
   house: string; // "Fazlul Huq House"
   houseColor: string; // e.g. "#3b82f6"
   avatar: string;

@@ -4,7 +4,7 @@ import { Story, CadetUser } from '../types';
 
 interface StoriesBarProps {
   stories: Story[];
-  currentUser: CadetUser;
+  currentUser: CadetUser | null;
   onAddStory: () => void;
 }
 
@@ -40,19 +40,19 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
           className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
         >
           <div className="relative">
-            <div className="w-14 h-14 rounded-full p-0.5 bg-slate-800 border-2 border-dashed border-indigo-500/50 group-hover:border-indigo-400 transition-colors flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full p-0.5 bg-[#ede5d8]/70 dark:bg-[#1e251f] border-2 border-dashed border-[#1b4332]/50 dark:border-[#15803d]/50 group-hover:border-[#1b4332] dark:group-hover:border-[#4ade80] transition-colors flex items-center justify-center">
               <img
-                src={currentUser.avatar}
+                src={currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80'}
                 alt="My Story"
                 referrerPolicy="no-referrer"
                 className="w-full h-full rounded-full object-cover filter brightness-90 group-hover:brightness-100 transition-all"
               />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center ring-2 ring-[#090d16] shadow-sm">
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-[#1b4332] dark:bg-[#15803d] text-white flex items-center justify-center ring-2 ring-white dark:ring-[#1a201b] shadow-xs">
               <Plus className="w-3.5 h-3.5" />
             </div>
           </div>
-          <span className="text-[11px] font-medium text-slate-300 max-w-[64px] truncate">
+          <span className="text-[11px] font-medium text-[#57534e] dark:text-[#d6d3d1] max-w-[64px] truncate">
             Add Memory
           </span>
         </div>
@@ -67,11 +67,11 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
             <div 
               className={`w-14 h-14 rounded-full p-0.5 transition-transform group-hover:scale-105 ${
                 story.hasUnseen
-                  ? 'bg-gradient-to-tr from-indigo-500 via-violet-500 to-sky-400 p-[2px]'
-                  : 'ring-1 ring-slate-700 bg-slate-800'
+                  ? 'bg-gradient-to-tr from-[#c59b27] via-[#1b4332] to-[#5c3d2e] dark:from-[#eab308] dark:via-[#15803d] dark:to-[#b45309] p-[2px]'
+                  : 'ring-1 ring-[#e2dacb] dark:ring-[#2c362d] bg-[#faf6ef] dark:bg-[#1e251f]'
               }`}
             >
-              <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border border-[#090d16]">
+              <div className="w-full h-full rounded-full overflow-hidden bg-[#faf6ef] dark:bg-[#141814] border border-white dark:border-[#1a201b]">
                 <img
                   src={story.author.avatar}
                   alt={story.author.name}
@@ -80,7 +80,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
                 />
               </div>
             </div>
-            <span className="text-[11px] font-medium text-slate-300 max-w-[68px] truncate text-center">
+            <span className="text-[11px] font-medium text-[#57534e] dark:text-[#d6d3d1] max-w-[68px] truncate text-center">
               {story.author.name.split(' ')[0]}
             </span>
           </div>

@@ -11,6 +11,95 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+export interface RecoveryCallbackInfo {
+  isRecoveryCallback: boolean;
+  hasRecoveryType: boolean;
+  hasTokens: boolean;
+  isErrorCallback: boolean;
+  errorCode: string | null;
+  errorMessage: string | null;
+}
+
+/**
+ * Safely parses URL fragment/query parameters for Supabase recovery callbacks
+ * without ever returning, storing, or exposing access or refresh tokens.
+ */
+export function parseRecoveryCallback(hash: string, search: string = ''): RecoveryCallbackInfo {
+  const empty: RecoveryCallbackInfo = {
+    isRecoveryCallback: false,
+    hasRecoveryType: false,
+    hasTokens: false,
+    isErrorCallback: false,
+    errorCode: null,
+    errorMessage: null,
+  };
+
+  try {
+    const rawHash = hash.startsWith('#') ? hash.slice(1) : hash;
+    const rawSearch = search.startsWith('?') ? search.slice(1) : search;
+    const hashParams = new URLSearchParams(rawHash);
+    const searchParams = new URLSearchParams(rawSearch);
+
+    const type = hashParams.get('type') || searchParams.get('type');
+    const hasRecoveryType = type === 'recovery';
+    const hasTokens =
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token') ||
+      searchParams.has('access_token') ||
+      searchParams.has('refresh_token');
+
+    const error = hashParams.get('error') || searchParams.get('error');
+    const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
+    const errorDescription =
+      hashParams.get('error_description') || searchParams.get('error_description');
+
+    const isErrorCallback = Boolean(error || errorCode);
+    let errorMessage: string | null = null;
+
+    if (isErrorCallback) {
+      if (errorCode === 'otp_expired') {
+        errorMessage =
+          'This password recovery link has expired or has already been used. Please request a new recovery link.';
+      } else if (errorDescription) {
+        const normalized = errorDescription.replace(/\+/g, ' ').trim();
+        errorMessage =
+          normalized.toLowerCase().includes('expired') || normalized.toLowerCase().includes('invalid')
+            ? 'This password recovery link is invalid, expired, or has already been used. Please request a new recovery link.'
+            : normalized;
+      } else {
+        errorMessage =
+          'This password recovery link is invalid or expired. Please request a new recovery link.';
+      }
+    }
+
+    return {
+      isRecoveryCallback: hasRecoveryType && !isErrorCallback,
+      hasRecoveryType,
+      hasTokens,
+      isErrorCallback,
+      errorCode,
+      errorMessage,
+    };
+  } catch {
+    return empty;
+  }
+}
+
+// Synchronously capture recovery callback metadata BEFORE any Supabase client
+// constructor (`detectSessionInUrl: true`) or async config fetch can clear window.location.hash.
+let initialRecoveryCallback: RecoveryCallbackInfo =
+  typeof window !== 'undefined'
+    ? parseRecoveryCallback(window.location.hash, window.location.search)
+    : parseRecoveryCallback('', '');
+
+export function getInitialRecoveryCallback(): RecoveryCallbackInfo {
+  return initialRecoveryCallback;
+}
+
+export function clearInitialRecoveryCallback(): void {
+  initialRecoveryCallback = parseRecoveryCallback('', '');
+}
+
 const getStaticEnv = (key: string): string | undefined => {
   if (typeof import.meta !== 'undefined' && import.meta.env && typeof import.meta.env[key] === 'string') {
     return import.meta.env[key];
@@ -21,18 +110,43 @@ const getStaticEnv = (key: string): string | undefined => {
   return undefined;
 };
 
-const staticUrl = getStaticEnv('VITE_SUPABASE_URL');
-const staticKey = getStaticEnv('VITE_SUPABASE_ANON_KEY');
+/**
+ * Normalizes the Supabase project base URL by stripping any accidental subpaths
+ * such as `/rest/v1`, `/rest/v1/`, `/rest`, or trailing slashes.
+ * Supabase SDK requires the root project URL (e.g. https://xyz.supabase.co).
+ */
+export function normalizeSupabaseUrl(rawUrl: string | undefined | null): string | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return null;
+  return trimmed
+    .replace(/\/rest\/v1\/?$/, '')
+    .replace(/\/rest\/?$/, '')
+    .replace(/\/auth\/v1\/?$/, '')
+    .replace(/\/$/, '');
+}
+
+const rawStaticUrl = getStaticEnv('VITE_SUPABASE_URL');
+const rawStaticKey = getStaticEnv('VITE_SUPABASE_ANON_KEY');
+const staticUrl = normalizeSupabaseUrl(rawStaticUrl);
+const staticKey = rawStaticKey ? rawStaticKey.trim() : undefined;
 
 export let isSupabaseConfigured: boolean = Boolean(
-  staticUrl && staticUrl.trim() && staticKey && staticKey.trim()
+  staticUrl && staticKey
 );
 
 export let supabase: SupabaseClient | null = null;
 
 function createClientInstance(url: string, key: string): SupabaseClient | null {
+  const normalizedUrl = normalizeSupabaseUrl(url);
+  const normalizedKey = key ? key.trim() : '';
+
+  if (!normalizedUrl || !normalizedKey) {
+    return null;
+  }
+
   try {
-    return createClient(url, key, {
+    return createClient(normalizedUrl, normalizedKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -50,6 +164,8 @@ if (isSupabaseConfigured && staticUrl && staticKey) {
   supabase = createClientInstance(staticUrl, staticKey);
 }
 
+let initConfigPromise: Promise<SupabaseClient | null> | null = null;
+
 /**
  * Asynchronously loads Supabase credentials from the server's /api/config route.
  * Used when secrets are injected on the server container rather than built into client bundle.
@@ -64,26 +180,47 @@ export async function initSupabaseFromConfig(): Promise<SupabaseClient | null> {
     return null;
   }
 
-  try {
-    const res = await fetch('/api/config');
-    if (!res.ok) {
-      return null;
-    }
-
-    const data = await res.json();
-    if (data && data.isConfigured && data.supabaseUrl && data.supabaseAnonKey) {
-      supabase = createClientInstance(data.supabaseUrl, data.supabaseAnonKey);
-      if (supabase) {
-        isSupabaseConfigured = true;
-      }
-      return supabase;
-    }
-  } catch (err) {
-    // Graceful fallback to mock mode
-    console.info('[CadetVerse] Operating in local mock mode (no active backend config).');
+  if (initConfigPromise) {
+    return initConfigPromise;
   }
 
-  return null;
+  initConfigPromise = (async () => {
+    try {
+      const res = await fetch('/api/config');
+      if (!res.ok) {
+        return null;
+      }
+
+      const data = await res.json();
+      if (data && data.isConfigured && data.supabaseUrl && data.supabaseAnonKey) {
+        supabase = createClientInstance(data.supabaseUrl, data.supabaseAnonKey);
+        if (supabase) {
+          isSupabaseConfigured = true;
+        }
+        return supabase;
+      }
+    } catch {
+      // Graceful fallback to mock mode
+      console.info('[CadetVerse] Operating in local mock mode (no active backend config).');
+    } finally {
+      initConfigPromise = null;
+    }
+
+    return null;
+  })();
+
+  return initConfigPromise;
+}
+
+/**
+ * Ensures the Supabase client is initialized (awaiting /api/config if needed)
+ * and returns it.
+ */
+export async function getOrInitSupabase(): Promise<SupabaseClient | null> {
+  if (supabase) {
+    return supabase;
+  }
+  return await initSupabaseFromConfig();
 }
 
 // In browser environments, attempt background configuration loading if not statically set

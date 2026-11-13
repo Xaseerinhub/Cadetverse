@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { isSupabaseConfigured, supabase, getSupabaseClient } from '../lib/supabase';
+import { isSupabaseConfigured, supabase, getSupabaseClient, normalizeSupabaseUrl } from '../lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 
 describe('Supabase Client Module Validation', () => {
@@ -27,4 +27,30 @@ describe('Supabase Client Module Validation', () => {
     assert.ok(testClient.auth, 'Client should possess auth interface');
     assert.ok(typeof testClient.from === 'function', 'Client should possess from() method');
   });
+
+  test('normalizeSupabaseUrl strips accidental subpaths and trailing slashes', () => {
+    assert.equal(
+      normalizeSupabaseUrl('https://oqcgymqrwukgagnywvrf.supabase.co/rest/v1/'),
+      'https://oqcgymqrwukgagnywvrf.supabase.co'
+    );
+    assert.equal(
+      normalizeSupabaseUrl('https://oqcgymqrwukgagnywvrf.supabase.co/rest/v1'),
+      'https://oqcgymqrwukgagnywvrf.supabase.co'
+    );
+    assert.equal(
+      normalizeSupabaseUrl('https://oqcgymqrwukgagnywvrf.supabase.co/rest'),
+      'https://oqcgymqrwukgagnywvrf.supabase.co'
+    );
+    assert.equal(
+      normalizeSupabaseUrl('https://oqcgymqrwukgagnywvrf.supabase.co/'),
+      'https://oqcgymqrwukgagnywvrf.supabase.co'
+    );
+    assert.equal(
+      normalizeSupabaseUrl('https://oqcgymqrwukgagnywvrf.supabase.co'),
+      'https://oqcgymqrwukgagnywvrf.supabase.co'
+    );
+    assert.equal(normalizeSupabaseUrl(null), null);
+    assert.equal(normalizeSupabaseUrl(''), null);
+  });
 });
+

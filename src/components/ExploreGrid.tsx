@@ -155,11 +155,11 @@ export const ExploreGrid: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-white via-[#faf6ef] to-white dark:from-[#1a201b] dark:via-[#161c17] dark:to-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] shadow-xs">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1c1917] dark:text-[#f5f5f4] tracking-tight">
           Cadet Campus Archives & Memories
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1.5 max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#78716c] dark:text-[#a8a29e] mt-1.5 max-w-2xl leading-relaxed">
           High-resolution photography, nostalgic moments, and ceremonial archives submitted by cadets and alumni across all 12 cadet colleges.
         </p>
 
@@ -169,8 +169,8 @@ export const ExploreGrid: React.FC = () => {
             onClick={() => setSelectedCollege('ALL')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
               selectedCollege === 'ALL'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                ? 'bg-[#1b4332] dark:bg-[#15803d] text-white shadow-xs'
+                : 'bg-white dark:bg-[#1e251f] text-[#57534e] dark:text-[#a8a29e] hover:text-[#1c1917] dark:hover:text-[#f5f5f4] border border-[#e2dacb] dark:border-[#2c362d]'
             }`}
           >
             All 12 Colleges
@@ -181,8 +181,8 @@ export const ExploreGrid: React.FC = () => {
               onClick={() => setSelectedCollege(c.code)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
                 selectedCollege === c.code
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-[#1b4332] dark:bg-[#15803d] text-white shadow-xs'
+                  : 'bg-white dark:bg-[#1e251f] text-[#57534e] dark:text-[#a8a29e] hover:text-[#1c1917] dark:hover:text-[#f5f5f4] border border-[#e2dacb] dark:border-[#2c362d]'
               }`}
             >
               {c.code}
@@ -191,8 +191,8 @@ export const ExploreGrid: React.FC = () => {
         </div>
 
         {/* Category Tabs */}
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto text-xs text-slate-400">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto text-xs text-[#78716c] dark:text-[#a8a29e]">
+          <span className="text-[11px] font-semibold text-[#57534e] dark:text-[#a8a29e] uppercase tracking-wider shrink-0 flex items-center gap-1">
             <Filter className="w-3 h-3" /> Category:
           </span>
           {categories.map((cat) => (
@@ -201,8 +201,8 @@ export const ExploreGrid: React.FC = () => {
               onClick={() => setSelectedCategory(cat)}
               className={`px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer whitespace-nowrap ${
                 selectedCategory === cat
-                  ? 'text-indigo-300 font-semibold bg-indigo-950/60 border border-indigo-500/40'
-                  : 'hover:text-slate-200 text-slate-400'
+                  ? 'text-[#1b4332] dark:text-[#4ade80] font-semibold bg-[#1b4332]/10 dark:bg-[#15803d]/20 border border-[#1b4332]/30 dark:border-[#15803d]/40'
+                  : 'hover:text-[#1c1917] dark:hover:text-[#f5f5f4] text-[#78716c] dark:text-[#a8a29e]'
               }`}
             >
               {cat}
@@ -221,9 +221,9 @@ export const ExploreGrid: React.FC = () => {
             <div
               key={item.id}
               onClick={() => setActivePhoto(item)}
-              className="group relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800/80 hover:border-indigo-500/40 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-indigo-950/30"
+              className="group relative rounded-2xl overflow-hidden bg-white dark:bg-[#1a201b] border border-[#e2dacb] dark:border-[#2c362d] hover:border-[#1b4332]/40 dark:hover:border-[#15803d]/40 transition-all duration-300 cursor-pointer shadow-xs hover:shadow-md"
             >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-slate-950">
+              <div className="aspect-[4/3] w-full overflow-hidden bg-[#faf6ef] dark:bg-[#121612]">
                 <img
                   src={item.imageUrl}
                   alt={item.title}
@@ -235,16 +235,16 @@ export const ExploreGrid: React.FC = () => {
               {/* Scrim Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-85 group-hover:opacity-95 transition-opacity flex flex-col justify-between p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-black/60 text-indigo-300 backdrop-blur-md border border-indigo-500/30">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-black/60 text-[#fef08a] backdrop-blur-md border border-[#c59b27]/40">
                     {item.college} · {item.year}
                   </span>
-                  <span className="text-[11px] text-slate-300 font-medium px-2 py-0.5 rounded bg-black/50 backdrop-blur-md">
+                  <span className="text-[11px] text-slate-200 font-medium px-2 py-0.5 rounded bg-black/50 backdrop-blur-md">
                     {item.category}
                   </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <h3 className="text-sm font-semibold text-white drop-shadow-sm line-clamp-1 group-hover:text-indigo-200 transition-colors">
+                  <h3 className="text-sm font-semibold text-white drop-shadow-sm line-clamp-1 group-hover:text-[#86efac] transition-colors">
                     {item.title}
                   </h3>
 
@@ -273,8 +273,8 @@ export const ExploreGrid: React.FC = () => {
 
       {/* Photo Lightbox Modal */}
       {activePhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0c101d] rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-[#1a201b] rounded-2xl border border-[#e2dacb] dark:border-[#2c362d] shadow-2xl overflow-hidden flex flex-col md:flex-row">
             {/* Close Button */}
             <button
               onClick={() => setActivePhoto(null)}
@@ -294,60 +294,60 @@ export const ExploreGrid: React.FC = () => {
             </div>
 
             {/* Right: Info & Cadet Comments */}
-            <div className="md:w-2/5 p-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-800 bg-[#0e1424] overflow-y-auto">
+            <div className="md:w-2/5 p-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-[#e2dacb] dark:border-[#2c362d] bg-white dark:bg-[#1a201b] overflow-y-auto">
               <div className="space-y-4">
                 <div>
-                  <div className="flex items-center gap-2 text-xs text-indigo-400 font-medium">
+                  <div className="flex items-center gap-2 text-xs text-[#1b4332] dark:text-[#4ade80] font-semibold">
                     <span>{activePhoto.collegeName}</span>
                     <span aria-hidden="true">·</span>
                     <span>{activePhoto.year}</span>
                   </div>
-                  <h2 className="text-base font-bold text-white mt-1">
+                  <h2 className="text-base font-bold text-[#1c1917] dark:text-[#f5f5f4] mt-1">
                     {activePhoto.title}
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[#78716c] dark:text-[#a8a29e] mt-0.5">
                     Archived by {activePhoto.author} (#{activePhoto.cadetNumber})
                   </p>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                <p className="text-xs text-[#57534e] dark:text-[#d6d3d1] leading-relaxed bg-[#faf6ef] dark:bg-[#141814] p-3 rounded-xl border border-[#e2dacb] dark:border-[#2c362d]">
                   {activePhoto.description}
                 </p>
 
                 {/* Like / Stats bar */}
-                <div className="flex items-center justify-between py-2 border-y border-slate-800 text-xs">
+                <div className="flex items-center justify-between py-2 border-y border-[#e2dacb] dark:border-[#2c362d] text-xs">
                   <button
                     onClick={() => togglePhotoLike(activePhoto.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                       likedPhotoIds.includes(activePhoto.id)
-                        ? 'text-rose-400 bg-rose-500/10'
-                        : 'text-slate-300 hover:bg-slate-800'
+                        ? 'text-rose-500 bg-rose-500/10'
+                        : 'text-[#57534e] hover:bg-[#ede5d8] dark:text-[#a8a29e] dark:hover:bg-[#202721]'
                     }`}
                   >
-                    <Heart className={`w-4 h-4 ${likedPhotoIds.includes(activePhoto.id) ? 'fill-rose-400' : ''}`} />
+                    <Heart className={`w-4 h-4 ${likedPhotoIds.includes(activePhoto.id) ? 'fill-rose-500' : ''}`} />
                     <span className="font-mono tabular-nums">
                       {activePhoto.likes + (likedPhotoIds.includes(activePhoto.id) ? 1 : 0)} Cadets Loved
                     </span>
                   </button>
 
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="text-[#78716c] dark:text-[#a8a29e] text-[11px]">
                     {activePhoto.category}
                   </span>
                 </div>
 
                 {/* Cadet Comments List */}
                 <div className="space-y-2.5">
-                  <span className="text-xs font-semibold text-slate-300">
+                  <span className="text-xs font-semibold text-[#1c1917] dark:text-[#f5f5f4]">
                     Cadet Discussions
                   </span>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                     {(activePhotoComments[activePhoto.id] || []).map((comm, idx) => (
-                      <div key={idx} className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs">
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                          <span className="font-semibold text-indigo-300">{comm.author}</span>
+                      <div key={idx} className="p-2 rounded-lg bg-[#faf6ef] dark:bg-[#141814] border border-[#e2dacb] dark:border-[#2c362d] text-xs">
+                        <div className="flex items-center justify-between text-[11px] text-[#78716c] dark:text-[#a8a29e] mb-1">
+                          <span className="font-semibold text-[#1b4332] dark:text-[#4ade80]">{comm.author}</span>
                           <span>{comm.time}</span>
                         </div>
-                        <p className="text-slate-300 leading-snug">{comm.text}</p>
+                        <p className="text-[#57534e] dark:text-[#d6d3d1] leading-snug">{comm.text}</p>
                       </div>
                     ))}
                   </div>
@@ -355,18 +355,18 @@ export const ExploreGrid: React.FC = () => {
               </div>
 
               {/* Add Comment Input */}
-              <form onSubmit={handleAddComment} className="pt-4 border-t border-slate-800 mt-4 flex gap-2">
+              <form onSubmit={handleAddComment} className="pt-4 border-t border-[#e2dacb] dark:border-[#2c362d] mt-4 flex gap-2">
                 <input
                   type="text"
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
                   placeholder="Share a campus memory..."
-                  className="flex-1 py-1.5 px-3 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="flex-1 py-1.5 px-3 rounded-lg bg-[#faf6ef] dark:bg-[#141814] border border-[#e2dacb] dark:border-[#2c362d] text-xs text-[#1c1917] dark:text-[#f5f5f4] placeholder:text-[#a8a29e] focus:outline-none focus:border-[#1b4332] dark:focus:border-[#15803d]"
                 />
                 <button
                   type="submit"
                   disabled={!newCommentText.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-500 disabled:opacity-40 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-[#1b4332] hover:bg-[#143527] dark:bg-[#15803d] dark:hover:bg-[#16a34a] text-white text-xs font-medium disabled:opacity-40 cursor-pointer shadow-xs"
                 >
                   Post
                 </button>
