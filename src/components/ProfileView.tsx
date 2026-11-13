@@ -11,6 +11,11 @@ import {
 } from 'lucide-react';
 import { CadetUser, Post } from '../types';
 import { PostCard } from './PostCard';
+import {
+  CADET_CAMPUS_GROUNDS_IMAGE,
+  CADET_PARADE_FORMATION_IMAGE,
+  CADET_ATHLETICS_EVENT_IMAGE,
+} from '../assets/cadetImages';
 import { checkProfileOwnership } from '../lib/authContext';
 
 interface ProfileViewProps {
@@ -72,7 +77,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {/* Cover Photo */}
         <div className="relative h-44 sm:h-56 bg-[#ede5d8] dark:bg-[#141814] w-full overflow-hidden">
           <img
-            src={user.coverImage || '/src/assets/images/cadet_campus_grounds_1794029062449.jpg'}
+            src={user.coverImage || CADET_CAMPUS_GROUNDS_IMAGE}
             alt="Cover"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
@@ -279,7 +284,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
       {activeTab === 'memories' && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {['/src/assets/images/cadet_campus_grounds_1794029062449.jpg', '/src/assets/images/cadet_parade_formation_1794029063294.jpg', '/src/assets/images/cadet_athletics_event_1794029063781.jpg'].map((img, i) => (
+          {[CADET_CAMPUS_GROUNDS_IMAGE, CADET_PARADE_FORMATION_IMAGE, CADET_ATHLETICS_EVENT_IMAGE].map((img, i) => (
             <div key={i} className="aspect-square rounded-xl overflow-hidden bg-[#faf6ef] dark:bg-[#141814] border border-[#e2dacb] dark:border-[#2c362d] shadow-xs">
               <img src={img} alt="Memory" className="w-full h-full object-cover hover:scale-105 transition-transform" />
             </div>

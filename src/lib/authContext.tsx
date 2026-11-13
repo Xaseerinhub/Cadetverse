@@ -20,6 +20,7 @@ import {
   type RecoveryCallbackInfo,
 } from './supabase';
 import type { CadetUser, CadetCollegeCode } from '../types';
+import { CADET_CAMPUS_GROUNDS_IMAGE } from '../assets/cadetImages';
 
 export { parseRecoveryCallback, type RecoveryCallbackInfo };
 
@@ -73,7 +74,7 @@ export function buildCadetUser(user: User): CadetUser {
     house,
     houseColor: metadata.house_color || '#64748b', // Neutral slate, not claiming an authoritative house colour
     avatar: metadata.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-    coverImage: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
+    coverImage: CADET_CAMPUS_GROUNDS_IMAGE,
     role: 'cadet', // Baseline role strictly with NO administrative or privileged rights
     profession: metadata.profession ? String(metadata.profession) : 'Cadet Member (Unverified)',
     location: metadata.location ? String(metadata.location) : 'Bangladesh',

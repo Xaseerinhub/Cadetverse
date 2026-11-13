@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Heart, MessageCircle, Eye, Sparkles, Filter, X } from 'lucide-react';
 import { CadetCollegeCode, CadetUser } from '../types';
 import { CADET_COLLEGES } from '../data/mockData';
+import {
+  CADET_CAMPUS_GROUNDS_IMAGE,
+  CADET_PARADE_FORMATION_IMAGE,
+  CADET_REUNION_GALA_IMAGE,
+  CADET_ATHLETICS_EVENT_IMAGE,
+} from '../assets/cadetImages';
 
 interface PhotoMemory {
   id: string;
@@ -38,7 +44,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'MCC',
       collegeName: 'Mirzapur Cadet College',
       year: 2026,
-      imageUrl: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
+      imageUrl: CADET_CAMPUS_GROUNDS_IMAGE,
       author: 'Tanvir Ahsan',
       cadetNumber: '1428',
       likes: 248,
@@ -52,7 +58,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'FCC',
       collegeName: 'Faujdarhat Cadet College',
       year: 2025,
-      imageUrl: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
+      imageUrl: CADET_PARADE_FORMATION_IMAGE,
       author: 'Maj. Rezwan (Retd.)',
       cadetNumber: '812',
       likes: 319,
@@ -66,7 +72,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'MGCC',
       collegeName: 'Mymensingh Girls\' Cadet College',
       year: 2026,
-      imageUrl: '/src/assets/images/cadet_reunion_gala_1794029063879.jpg',
+      imageUrl: CADET_REUNION_GALA_IMAGE,
       author: 'Samira Mehnaz',
       cadetNumber: '412',
       likes: 195,
@@ -80,7 +86,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'RCC',
       collegeName: 'Rajshahi Cadet College',
       year: 2026,
-      imageUrl: '/src/assets/images/cadet_athletics_event_1794029063781.jpg',
+      imageUrl: CADET_ATHLETICS_EVENT_IMAGE,
       author: 'Farhan Ahmed',
       cadetNumber: '2105',
       likes: 184,
@@ -94,7 +100,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'JCC',
       collegeName: 'Jhenaidah Cadet College',
       year: 2024,
-      imageUrl: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
+      imageUrl: CADET_CAMPUS_GROUNDS_IMAGE,
       author: 'Anisur Rahman',
       cadetNumber: '619',
       likes: 142,
@@ -108,7 +114,7 @@ export const ExploreGrid: React.FC = () => {
       college: 'SCC',
       collegeName: 'Sylhet Cadet College',
       year: 2025,
-      imageUrl: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
+      imageUrl: CADET_PARADE_FORMATION_IMAGE,
       author: 'Tariq Munir',
       cadetNumber: '1120',
       likes: 210,

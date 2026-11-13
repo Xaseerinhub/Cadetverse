@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { X, Image as ImageIcon, Send, Tag, Sparkles } from 'lucide-react';
 import { CadetUser, CadetCollegeCode, Post } from '../types';
 import { CADET_COLLEGES } from '../data/mockData';
+import {
+  CADET_CAMPUS_GROUNDS_IMAGE,
+  CADET_PARADE_FORMATION_IMAGE,
+  CADET_REUNION_GALA_IMAGE,
+  CADET_ATHLETICS_EVENT_IMAGE,
+} from '../assets/cadetImages';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -30,10 +36,10 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>(['CadetLife']);
 
   const sampleImages = [
-    { label: 'Campus Grounds', url: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg' },
-    { label: 'Parade Formation', url: '/src/assets/images/cadet_parade_formation_1794029063294.jpg' },
-    { label: 'Alumni Reunion', url: '/src/assets/images/cadet_reunion_gala_1794029063879.jpg' },
-    { label: 'Athletics Meet', url: '/src/assets/images/cadet_athletics_event_1794029063781.jpg' },
+    { label: 'Campus Grounds', url: CADET_CAMPUS_GROUNDS_IMAGE },
+    { label: 'Parade Formation', url: CADET_PARADE_FORMATION_IMAGE },
+    { label: 'Alumni Reunion', url: CADET_REUNION_GALA_IMAGE },
+    { label: 'Athletics Meet', url: CADET_ATHLETICS_EVENT_IMAGE },
   ];
 
   const quickTags = ['CadetLife', 'AlumniReunion', 'InterHouse', 'CadetMotto', 'SeniorJunior', 'OFA', 'MECA'];
