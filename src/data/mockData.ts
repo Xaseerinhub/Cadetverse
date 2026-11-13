@@ -1,4 +1,5 @@
 import { 
+  CadetCollegeCode, 
   CadetUser, 
   Post, 
   Story, 
@@ -8,15 +9,28 @@ import {
   NotificationItem, 
   VerificationRequest 
 } from '../types';
+import { CADET_COLLEGES_DATA } from './cadetColleges';
+
+export const CADET_COLLEGES = CADET_COLLEGES_DATA.map((c) => ({
+  code: c.abbreviation,
+  name: c.name,
+  established: c.established,
+  location: c.location,
+  motto: c.motto,
+  houses: c.houses.map((h) => h.name),
+  alumniAssoc: `${c.alumniAssociation.name} (${c.alumniAssociation.abbreviation})`,
+}));
 
 export const DEMO_USERS: CadetUser[] = [
   {
     id: 'user_1',
     name: 'Dr. Tanvir Ahsan',
     cadetNumber: '1428',
+    college: 'Mirzapur Cadet College',
     collegeCode: 'MCC',
     intake: 44,
-    houseId: 'MCC-FAZLUL_HUQ',
+    house: 'Fazlul Huq House',
+    houseColor: '#3b82f6',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_campus_grounds_1794029062449.jpg',
     role: 'alumnus',
@@ -37,9 +51,11 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_2',
     name: 'Dr. Nafis Iqbal',
     cadetNumber: '984',
+    college: 'Faujdarhat Cadet College',
     collegeCode: 'FCC',
     intake: 39,
-    houseId: 'FCC-RABINDRA',
+    house: 'Rabindra House',
+    houseColor: '#eab308',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_parade_formation_1794029063294.jpg',
     role: 'alumnus',
@@ -60,9 +76,11 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_3',
     name: 'Samira Mehnaz',
     cadetNumber: '412',
+    college: 'Mymensingh Girls\' Cadet College',
     collegeCode: 'MGCC',
     intake: 14,
-    houseId: 'MGCC-SATYA',
+    house: 'Satya House',
+    houseColor: '#10b981',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_reunion_gala_1794029063879.jpg',
     role: 'alumnus',
@@ -83,9 +101,11 @@ export const DEMO_USERS: CadetUser[] = [
     id: 'user_4',
     name: 'Kazi Farhan Ahmed',
     cadetNumber: '2105',
+    college: 'Rajshahi Cadet College',
     collegeCode: 'RCC',
     intake: 52,
-    houseId: 'RCC-QASIM',
+    house: 'Qasim House',
+    houseColor: '#1e3a8a',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
     coverImage: '/src/assets/images/cadet_athletics_event_1794029063781.jpg',
     role: 'prefect',
@@ -252,9 +272,10 @@ export const INITIAL_POSTS: Post[] = [
       ...DEMO_USERS[1],
       name: 'Major Rezwanul Kabir (Retd.)',
       cadetNumber: '812',
+      college: 'Jhenaidah Cadet College',
       collegeCode: 'JCC',
       intake: 26,
-      houseId: 'JCC-BADR'
+      house: 'Badr House'
     },
     content: 'To the young cadets currently preparing for the Inter-Cadet Literary and Cultural Competition (ICLCC): remember that elocution, extempore speech, and stage presence learned in that auditorium will define how you speak before boardrooms, tribunals, and command summits 30 years from now. Give it your entire heart.',
     collegeTag: 'JCC',
@@ -291,7 +312,7 @@ export const INITIAL_COMMUNITIES: Community[] = [
     type: 'college',
     category: 'College Wing',
     memberCount: 2450,
-    description: 'Old Faujian Association official nexus. Shahidullah, Rabindra, Fazlul Hoque, and Nazrul house archives.',
+    description: 'Old Fauji Association official nexus. Babar, Shahjahan, Akbar, Rabindra, and Fazlul Huq house archives.',
     isJoined: false,
     recentTopic: 'OFA Winter Golf Tournament 2026',
     badge: 'Est. 1958'
@@ -385,8 +406,8 @@ export const INITIAL_COMMUNITIES: Community[] = [
 export const INITIAL_CONVERSATIONS: ChatConversation[] = [
   {
     id: 'chat_1',
-    participant: DEMO_USERS[1], // Dr. Nafis
-    lastMessage: 'Let’s sync on the medical tent setup for the reunion weekend.',
+    participant: DEMO_USERS[1],
+    lastMessage: 'Let's sync on the medical tent setup for the reunion weekend.',
     lastMessageTime: '10:45 AM',
     unreadCount: 1,
     isOnline: true,
@@ -414,7 +435,7 @@ export const INITIAL_CONVERSATIONS: ChatConversation[] = [
         senderId: 'user_2',
         senderName: 'Dr. Nafis Iqbal',
         senderAvatar: DEMO_USERS[1].avatar,
-        text: 'We have 24 doctors onboard already. Let’s sync on the medical tent setup for the reunion weekend.',
+        text: 'We have 24 doctors onboard already. Let's sync on the medical tent setup for the reunion weekend.',
         timestamp: '10:45 AM',
         isFromMe: false
       }
@@ -422,7 +443,7 @@ export const INITIAL_CONVERSATIONS: ChatConversation[] = [
   },
   {
     id: 'chat_2',
-    participant: DEMO_USERS[2], // Samira
+    participant: DEMO_USERS[2],
     lastMessage: 'Sent you the Figma prototype for the Cadet Career Portal!',
     lastMessageTime: 'Yesterday',
     unreadCount: 0,
@@ -459,7 +480,7 @@ export const INITIAL_CONVERSATIONS: ChatConversation[] = [
   },
   {
     id: 'chat_3',
-    participant: DEMO_USERS[3], // Kazi Farhan
+    participant: DEMO_USERS[3],
     lastMessage: 'Thank you for the guidance on the athletics cup speech, Bhai.',
     lastMessageTime: 'Nov 4',
     unreadCount: 0,
@@ -530,7 +551,7 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     issuerRole: 'Trustee Board',
     date: 'October 28, 2026',
     category: 'Scholarship',
-    content: 'Applications are now open for the ICWF Higher Education Fellowship, granting up to $15,000 for deserving cadet college graduates accepted into top tier international universities for Master’s and Doctoral programs in Engineering, Medicine, and Public Policy.',
+    content: 'Applications are now open for the ICWF Higher Education Fellowship, granting up to $15,000 for deserving cadet college graduates accepted into top tier international universities for Master's and Doctoral programs in Engineering, Medicine, and Public Policy.',
     isPinned: false,
     actionText: 'Download Application Packet',
     actionUrl: '#',
@@ -599,10 +620,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_1',
     cadetName: 'Rashidul Hasan',
-    collegeCode: 'FCC',
+    college: 'Faujdarhat Cadet College',
     cadetNumber: '1102',
     intake: 41,
-    houseId: 'FCC-SHAHIDULLAH',
+    house: 'Shahidullah House',
     graduatingYear: 2011,
     submittedAt: 'Today, 2:15 PM',
     proofDocument: 'College Leaving Certificate #FCC-2011-1102 (PDF)',
@@ -611,10 +632,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_2',
     cadetName: 'Tazeen Sharmin',
-    collegeCode: 'FGCC',
+    college: 'Feni Girls\' Cadet College',
     cadetNumber: '184',
     intake: 6,
-    houseId: 'FGCC-AYESHA',
+    house: 'Ayesha House',
     graduatingYear: 2015,
     submittedAt: 'Yesterday, 8:40 PM',
     proofDocument: 'FGCC Old Cadets Association Membership Card (JPG)',
@@ -623,10 +644,10 @@ export const INITIAL_VERIFICATIONS: VerificationRequest[] = [
   {
     id: 'ver_3',
     cadetName: 'Shahriar Mahmud',
-    collegeCode: 'BCC',
+    college: 'Barisal Cadet College',
     cadetNumber: '954',
     intake: 29,
-    houseId: 'BCC-SHARIATULLAH',
+    house: 'Sher-e-Bangla House',
     graduatingYear: 2007,
     submittedAt: 'Nov 04, 2026',
     proofDocument: 'HSC Transcript & Cadet ID Scan (PNG)',
